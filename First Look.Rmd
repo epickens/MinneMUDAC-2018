@@ -35,7 +35,7 @@ library(stringr)
 registration <- read_xlsx("data/minnesota-voter-registration-by-county-since-2000.xlsx", skip = 1)
 elections <- read_xlsx("data/minnesota-election-statistics-1950-to-2016.xlsx", skip = 2, col_names = c("Year", "Est_Num_Elg_Voters", "Num_Voters", "Prcnt_Turnout", "Num_Elc_Day_Regis", "Prcnt_Voters_Regis_Elc_Day"))
 #dists <- read_csv("data/Minnesota_District_edit.csv")
-dists <- read_csv("data/dists_t.csv")
+dists <- read_csv("data/dists_t.csv", skip = 1)
 ```
 
 #### Let's try to clean up this data a little bit
