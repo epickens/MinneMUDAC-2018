@@ -1,0 +1,85 @@
+---
+title: "First Look"
+author: "Elliot Pickens"
+date: "October 10, 2018"
+output: pdf_document
+---
+
+#### Load some libraries
+
+```{r}
+library("tidyverse")
+library(tidyselect)
+library(tibble)
+library(tidyr)
+library(dplyr)
+library(ggformula)
+library(car)
+library(gridExtra)
+library(broom)
+library(ggthemes)
+library(MASS)
+library(leaps)
+library(GGally)
+library(aod)
+library(readr)
+library(readxl)
+library(stringr)
+#‘httr’, ‘rvest’, ‘xml2’
+
+```
+
+#### Load some data
+
+```{r}
+registration <- read_xlsx("data/minnesota-voter-registration-by-county-since-2000.xlsx", skip = 1)
+elections <- read_xlsx("data/minnesota-election-statistics-1950-to-2016.xlsx", skip = 2, col_names = c("Year", "Est_Num_Elg_Voters", "Num_Voters", "Prcnt_Turnout", "Num_Elc_Day_Regis", "Prcnt_Voters_Regis_Elc_Day"))
+#dists <- read_csv("data/Minnesota_District_edit.csv")
+dists <- read_csv("data/dists_t.csv")
+```
+
+#### Let's try to clean up this data a little bit
+
+```{r}
+elections1 <- elections %>%
+  filter(Year <= 2016) 
+
+#This ain't right
+elect_rm_na <- elections1 %>%
+  filter(Prcnt_Turnout == "No Data")
+  
+
+#dist %>%
+  #gather(key = var_name, value = value, 2:ncol(dist)) %>%
+  #spread_(key = names(dist)[1], value = 'value')
+
+#dist.df <- as.data.frame(dists)
+
+#t_df <- data.table::transpose(dist.df)
+#colnames(t_df) <- rownames(dist.df)
+#rownames(t_df) <- colnames(dist.df)
+
+#dists_t <- as_tibble(t_df)
+#write_csv(dists_t, "dists_t.csv")
+
+
+```
+
+#### Basic Visualization
+
+```{r}
+#ggplot(data = elections) +
+#  geom_point(mapping = aes(x = Year, y = Prcnt_Turnout))
+
+elections1 %>%
+  gf_point(Prcnt_Turnout ~ Year) %>%
+    gf_lm(Prcnt_Turnout ~ Year, color = "blue")
+
+elections1 %>%
+  gf_point(Num_Voters ~ Year) %>%
+  gf_point(Est_Num_Elg_Voters ~ Year) %>%
+  gf_lm(Est_Num_Elg_Voters ~ Year)
+```
+
+
+
