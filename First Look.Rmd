@@ -7,8 +7,10 @@ output: pdf_document
 
 #### Load some libraries
 
+* You may need to install some of the libraries below. To install package `tidyverse`, for example, run `install.packages("tidyverse")` in the console
+
 ```{r}
-library("tidyverse")
+library(tidyverse)
 library(tidyselect)
 library(tibble)
 library(tidyr)
@@ -25,6 +27,8 @@ library(aod)
 library(readr)
 library(readxl)
 library(stringr)
+library(forecast) 
+library(tseries)
 #‘httr’, ‘rvest’, ‘xml2’
 
 ```
@@ -81,5 +85,34 @@ elections1 %>%
   gf_lm(Est_Num_Elg_Voters ~ Year)
 ```
 
+##Attempt At Forecasting
+
+```{r}
+district_registration = 
+  read_excel("data/minnesota-voter-registration-by-county-since-2000.xlsx") %>%
+  t() %>%
+  as.tibble()
+
+colnames(district_registration) = district_registration[1,]
+district_registration = slice(district_registration, -1)
+```
+
+```{r}
+plot.ts(district_registration$Faribault)
+```
+
+```{r}
+fts = ts(district_registration$Faribault, frequency=3)
+decomp = stl(fts, s.window="periodic")
+deseasonal_cnt <- seasadj(decomp)
+plot(decomp)
+adf.test(fts, alternative = "stationary")
+```
+
+```{r}
+fit = auto.arima(deseasonal_cnt, seasonal=FALSE)
+fcast <- forecast(fit, h=30)
+plot(fcast)
+```
 
 
