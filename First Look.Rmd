@@ -40,6 +40,8 @@ registration <- read_xlsx("data/minnesota-voter-registration-by-county-since-200
 elections <- read_xlsx("data/minnesota-election-statistics-1950-to-2016.xlsx", skip = 2, col_names = c("Year", "Est_Num_Elg_Voters", "Num_Voters", "Prcnt_Turnout", "Num_Elc_Day_Regis", "Prcnt_Voters_Regis_Elc_Day"))
 #dists <- read_csv("data/Minnesota_District_edit.csv")
 dists <- read_csv("data/dists_t.csv", skip = 1)
+demo15 <- read_csv("data/ACS_5YR/ACS_15_5YR_S0501/ACS_15_5YR_S0501_with_ann.csv", skip = 0)
+demo17 <- read_xls("data/ACS_1YR/ACS_17_1YR_S0601(1).xls", skip = 0)
 ```
 
 #### Let's try to clean up this data a little bit
@@ -65,6 +67,8 @@ elect_rm_na <- elections1 %>%
 
 #dists_t <- as_tibble(t_df)
 #write_csv(dists_t, "dists_t.csv")
+
+
 
 
 ```
