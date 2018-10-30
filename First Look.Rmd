@@ -29,19 +29,207 @@ library(readxl)
 library(stringr)
 library(forecast) 
 library(tseries)
+library(tabulizer)
 #‘httr’, ‘rvest’, ‘xml2’
 
 ```
 
-#### Load some data
+####Load some data
 
-```{r}
+```{r, message=FALSE}
 registration <- read_xlsx("data/minnesota-voter-registration-by-county-since-2000.xlsx", skip = 1)
 elections <- read_xlsx("data/minnesota-election-statistics-1950-to-2016.xlsx", skip = 2, col_names = c("Year", "Est_Num_Elg_Voters", "Num_Voters", "Prcnt_Turnout", "Num_Elc_Day_Regis", "Prcnt_Voters_Regis_Elc_Day"))
 #dists <- read_csv("data/Minnesota_District_edit.csv")
 dists <- read_csv("data/dists_t.csv", skip = 1)
 demo15 <- read_csv("data/ACS_5YR/ACS_15_5YR_S0501/ACS_15_5YR_S0501_with_ann.csv", skip = 0)
 demo17 <- read_xls("data/ACS_1YR/ACS_17_1YR_S0601(1).xls", skip = 0)
+```
+
+###Creating 2014 Representative Vote By District
+
+```{r}
+titles = c("republican", "democrat", "other") 
+first = c(103536, 122851, 308)
+second = c(137778, 95565, 12319)
+third = c(167515, 101846, 224)
+fourth = c(79492, 147857, 14059)
+fifth = c(56577, 167079, 12354)
+sixth = c(133328, 90926, 12592)
+seventh = c(109955, 130546, 334)
+eighth = c(125358, 129090, 11450) #other is green party vote, for 8th district
+rep_2014 = rbind.data.frame(first, second, third, fourth, fifth, sixth, seventh, eighth)
+colnames(rep_2014) = titles
+rep_2014 = mutate(rep_2014, total = republican + democrat + other) %>%
+   mutate(repubRatio = republican/total)
+```
+
+
+###Creating 2012 Representative Vote By District
+
+```{r}
+first2012 = c(142164, 193211, 505)
+second2012 = c(193587, 164338, 521)
+third2012 = c(222335, 159937, 433)
+fourth2012 = c(109659, 216685, 21682)
+fifth2012 = c(88753, 262102, 1114)
+sixth2012 = c(179240, 174944, 969)
+seventh2012 = c(114151, 197791, 15638)
+eighth2012 = c(160520, 191976, 1167)
+rep_2012 = rbind.data.frame(first2012, second2012, third2012, fourth2012, fifth2012, sixth2012, seventh2012, eighth2012)
+colnames(rep_2012) = titles
+rep_2012 = mutate(rep_2012, total = republican + democrat + other) %>%
+  mutate(repubRatio = republican/total)
+```
+
+###Creating 2010 Representative Vote By District
+
+```{r}
+first2010 = c(109242, 122365, 16398)
+second2010 = c(181341, 104809, 303)
+third2010 = c(161177, 100240, 12675)
+fourth2010 = c(80141, 136746,  14539)
+fifth2010 = c(55222, 154833, 18691)
+sixth2010 = c(159476, 120846, 23369)
+seventh2010 = c(90652, 133096, 17349)
+eighth2010 = c(133490, 129091, 14500)
+rep_2010 = rbind.data.frame(first2010, second2010, third2010, fourth2010, fifth2010, sixth2010, seventh2010, eighth2010)
+colnames(rep_2010) = titles
+rep_2010 = mutate(rep_2010, total = republican + democrat + other) %>%
+   mutate(repubRatio = republican/total)
+```
+
+##2016 County Data
+```{r}
+county_2016 = extract_tables("data/electionresults_2016.pdf", pages = 1)
+county_2016 = as.data.frame(county_2016[[2]], stringsAsFactors = FALSE)
+colnames(county_2016) = c("County", "VotersRegAM", "RegElecDay", "Sigs", "RegMilOver", "FedAbsentee", "Voters")
+```
+
+###Creating a District Column
+```{r}
+county_2016 = slice(county_2016, 1:87) %>%
+  mutate(District = case_when(
+    County == "Blue Earth"|County == "Brown"|County == "Dodge"|County == "Faribault"|County == "Fillmore"|County == "Freeborn"|County == "Houston"|County == "Jackson"|County == "Le Sueur"|County == "Martin"|County == "Mower"|County == "Nicollet"|County == "Nobles"|County == "Olmsted"|County == "Rock"|County == "Steele"|County == "Waseca"|County == "Watonwan"|County == "Winona"|County == "Rice" ~ 1,
+    County == "Dakota"|County == "Goodhue"|County == "Scott"|County == "Wabasha" ~ 2,
+    County == "Hennepin"|County == "Carver" ~ 3,
+    County == "Washington" ~ 4,
+    County == "Ramsey" ~ 5,
+    County == "Benton"|County == "Sherburne"|County == "Wright"|County == "Anoka"|County == "Stearns" ~ 6,
+    County == "Becker"|County == "Big Stone"|County == "Chippewa"|County == "Clay"|County == "Clearwater"|County == "Douglas"|County == "Grant"|County == "Kandiyohi"|County == "Kittson"|County == "Lac Qui Parle"|County == "Lake of the Woods"|County == "Lincoln"|County == "Lyon"| County == "Mahnomen"|County == "Marshall"|County == "McLeod"|County == "Meeker"|County == "Murray"|County == "Norman"|County == "Otter Tail"|County == "Pennington"|County == "Pipestone"|County == "Polk"|County == "Pope"|County == "Red Lake"|County == "Redwood"|County == "Renville"|County == "Roseau"|County == "Sibley"|County == "Stevens"|County == "Swift"|County == "Todd"|County == "Traverse"|County == "Wilkin"|County == "Yellow Medicine"|County == "Beltrami"|County == "Cottonwood" ~ 7,
+    County == "Aitkin"|County == "Carlton"|County == "Cass"|County == "Chisago"|County == "Cook"|County == "Crow Wing"|County == "Hubbard"|County == "Isanti"|County == "Itasca"|County == "Kanabec"|County == "Koochiching"|County == "Lake"|County == "Mille Lacs"|County == "Morrison"|County == "Pine"|County == "St. Louis"|County == "Wadena" ~ 8))
+
+county_2016$Voters = lapply(county_2016$Voters, function(x) gsub(",", "", x)) %>%
+  as.numeric()
+```
+
+###Summarizing voter county by district
+
+```{r}
+voters_2016 = county_2016 %>%
+  group_by(District) %>%
+  summarize(Votes = sum(Voters)) %>%
+  dplyr::select(Votes)
+```
+
+##2012 County Data
+```{r}
+county_2012 = as.data.frame(extract_tables("data/2012genresults.pdf", page = 1)[[1]], stringsAsFactors = FALSE)
+county_2012 = cbind.data.frame(county_2016$County, county_2012, stringsAsFactors = FALSE) %>%
+  dplyr::select(-7)
+colnames(county_2012) = c("County", "VotersRegAM", "RegElecDay", "Sigs", "RegMilOver", "FedAbsentee", "Voters")
+```
+
+##Mutate MUTATE
+```{r}
+county_2012 = county_2012 %>%
+  mutate(District = case_when(
+    County == "Blue Earth"|County == "Brown"|County == "Dodge"|County == "Faribault"|County == "Fillmore"|County == "Freeborn"|County == "Houston"|County == "Jackson"|County == "Le Sueur"|County == "Martin"|County == "Mower"|County == "Nicollet"|County == "Nobles"|County == "Olmsted"|County == "Rock"|County == "Steele"|County == "Waseca"|County == "Watonwan"|County == "Winona"|County == "Rice" ~ 1,
+    County == "Dakota"|County == "Goodhue"|County == "Scott"|County == "Wabasha" ~ 2,
+    County == "Hennepin"|County == "Carver" ~ 3,
+    County == "Washington" ~ 4,
+    County == "Ramsey" ~ 5,
+    County == "Benton"|County == "Sherburne"|County == "Wright"|County == "Anoka"|County == "Stearns" ~ 6,
+    County == "Becker"|County == "Big Stone"|County == "Chippewa"|County == "Clay"|County == "Clearwater"|County == "Douglas"|County == "Grant"|County == "Kandiyohi"|County == "Kittson"|County == "Lac Qui Parle"|County == "Lake of the Woods"|County == "Lincoln"|County == "Lyon"| County == "Mahnomen"|County == "Marshall"|County == "McLeod"|County == "Meeker"|County == "Murray"|County == "Norman"|County == "Otter Tail"|County == "Pennington"|County == "Pipestone"|County == "Polk"|County == "Pope"|County == "Red Lake"|County == "Redwood"|County == "Renville"|County == "Roseau"|County == "Sibley"|County == "Stevens"|County == "Swift"|County == "Todd"|County == "Traverse"|County == "Wilkin"|County == "Yellow Medicine"|County == "Beltrami"|County == "Cottonwood" ~ 7,
+    County == "Aitkin"|County == "Carlton"|County == "Cass"|County == "Chisago"|County == "Cook"|County == "Crow Wing"|County == "Hubbard"|County == "Isanti"|County == "Itasca"|County == "Kanabec"|County == "Koochiching"|County == "Lake"|County == "Mille Lacs"|County == "Morrison"|County == "Pine"|County == "St. Louis"|County == "Wadena" ~ 8))
+```
+
+###To Numeric: 2012 fashion
+```{r}
+county_2012$Voters = lapply(county_2012$Voters, function(x) gsub(",", "", x)) %>%
+  as.numeric()
+```
+
+```{r}
+voters_2012 = county_2012 %>%
+  group_by(District) %>%
+  summarize(Votes = sum(Voters)) %>%
+  dplyr::select(Votes)
+```
+
+
+###Loading and Cleaning General Results Data for 2016: By Congressional District
+
+```{r}
+genResults2016_congDist = read_excel("data/2016genresults.xlsx") %>%
+  dplyr::select(CONGDIST, TOTVOTING) %>% 
+  group_by(CONGDIST) %>%
+  summarise(votes = sum(TOTVOTING)) %>%
+  slice(-9)
+```
+
+###Loading and Cleaning ACS2016
+
+```{r}
+demo16 = read_excel("data/ACS_1YR/ACS_16_1YR_S0601.xls")
+```
+
+###Appending Results to ACS2016
+
+```{r}
+demo16 = as.tibble(bind_cols(demo16, voters_2016)) %>%
+  dplyr::select(-1)
+```
+
+```{r}
+demo16 = lapply(demo16, function(x) gsub(",", "", x))
+demo16 = lapply(demo16, function(x) gsub("N", 0, x))
+demo16 = as.data.frame(lapply(demo16, function(x) gsub("%", "", x)), stringsAsFactors = FALSE)
+demo16 = as.data.frame(lapply(demo16, function(x) as.numeric(x)))
+colnames(demo16) = c("population", "under5", "fiveTo17", "eighteenTo24", "tw5To44", "fourty5To55", "fifty5to64", "sixty5To74", "seven5plus", "median_age", "male", "female", "white", "black", "native", "asian", "hawaiianPacific", "other", "mixed", "latinx", "whiteNotLatinx", "neverMarried", "married", "separated", "widowed", "lessThanHSDiploma", "HSGrad", "someCollege", "bachelors", "graduate", "firstincome", "secondincome", "thirdincome","fourth", "fifth", "sixth", "seventh", "eighth", "median_income", "belowPovLine", "secondPovLine", "thirdPoveLine", "votes")
+```
+
+```{r}
+demo16.train = slice(demo16, 1:7)
+demo16.test = slice(demo16, 8) %>%
+  dplyr::select(-43)
+```
+
+###Testing on 2012 Data
+```{r}
+demo12 = read_csv("data/ACS_1YR/ACS_12_1YR_S0501/ACS_12_1YR_S0501_with_ann.csv", skip = 1) %>%
+  dplyr::select(contains("Total; Estimate")) %>%
+  slice(-1)
+```
+
+
+
+```{r}
+regfit.full=regsubsets(votes~., data = demo16.train)
+summary(regfit.full)
+```
+
+```{r}
+demo16.fit = lm(votes ~ mixed + thirdincome + eighth + thirdPoveLine, data = demo16.train)
+predict(demo16.fit, demo16.test)
+summary(demo16.fit)
+```
+
+###Formatting Data15
+
+```{r} 
+colnames(demo15) = demo15[1,]
+demo15 = as.tibble(slice(demo15[-1,]))
+demo15 = dplyr::select(demo15, 2:9)
 ```
 
 #### Let's try to clean up this data a little bit
@@ -109,8 +297,6 @@ plot.ts(district_registration$Faribault)
 fts = ts(district_registration$Faribault, frequency=3)
 decomp = stl(fts, s.window="periodic")
 deseasonal_cnt <- seasadj(decomp)
-plot(decomp)
-adf.test(fts, alternative = "stationary")
 ```
 
 ```{r}
@@ -118,5 +304,3 @@ fit = auto.arima(deseasonal_cnt, seasonal=FALSE)
 fcast <- forecast(fit, h=30)
 plot(fcast)
 ```
-
-
