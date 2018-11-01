@@ -42,6 +42,7 @@ registration <- read_xlsx("data/minnesota-voter-registration-by-county-since-200
 elections <- read_xlsx("data/minnesota-election-statistics-1950-to-2016.xlsx", skip = 2, col_names = c("Year", "Est_Num_Elg_Voters", "Num_Voters", "Prcnt_Turnout", "Num_Elc_Day_Regis", "Prcnt_Voters_Regis_Elc_Day"))
 #dists <- read_csv("data/Minnesota_District_edit.csv")
 dists <- read_csv("data/dists_t.csv", skip = 1)
+#Load demographic data
 demo15 <- read_csv("data/ACS_5YR/ACS_15_5YR_S0501/ACS_15_5YR_S0501_with_ann.csv", skip = 0)
 demo17 <- read_xls("data/ACS_1YR/ACS_17_1YR_S0601(1).xls", skip = 0)
 ```
@@ -225,6 +226,8 @@ demo12 = bind_cols(demo12, voters_12_for_demo)
 industry_demo12 = bind_cols(industry_demo12, voters_12_for_demo)
 ```
 
+####Modelling
+
 ```{r}
 regfit.full=regsubsets(Votes~., data = industry_demo12)
 industry2012_fit = lm(industry_demo12$Votes~industry_demo12$`Total; Estimate; INDUSTRY - Finance and insurance, and real estate and rental and leasing`, data = industry_demo12)
@@ -232,12 +235,14 @@ summary(industry2012_fit)
 plot(industry_demo12$`Total; Estimate; INDUSTRY - Finance and insurance, and real estate and rental and leasing`, industry_demo12$Votes)
 ```
 
-
+####Checking Fit Summary
 
 ```{r}
 regfit.full=regsubsets(votes~., data = demo16.train)
 summary(regfit.full)
 ```
+
+####More Fit Summary
 
 ```{r}
 demo16.fit = lm(votes ~ mixed + thirdincome + eighth + thirdPoveLine, data = demo16.train)
