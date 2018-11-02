@@ -35,6 +35,7 @@ library(tabulizer)
 library(glmnet)
 library(caret)
 library(skimr)
+library(lattice)
 #‘httr’, ‘rvest’, ‘xml2’
 
 ```
@@ -217,7 +218,11 @@ View(skimmed)
 
 ####Regression Time
 
+####Also be careful with runtimes here (you may want to only run one of these lines at a time --Bless Crtl Enter--)
+
 ```{r}
+set.seed(100)
+
 lm.basic <- lm(ruff_turnout ~ 1, data = gen_elec_no_names)
 
 lm.full <- lm(ruff_turnout ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level, data = gen_elec_no_names)
@@ -369,6 +374,8 @@ summary(model_rf)
 
 ####Now xgBoost Dart
 
+####This takes dumb long to run be careful
+
 ```{r}
 set.seed(100)
 
@@ -391,11 +398,61 @@ model_svmRadial
 
 ```{r}
 # Compare model performances using resample()
-models_compare <- resamples(list(RF=model_rf, XGBDART=model_xgbDART, MARS=model_mars, SVM=model_svmRadial))
+#TEMPORARY LEFT OUT FOR TESTING DUE TO RUNTIME ISSUES
+# XGBDART=model_xgbDART, 
+models_compare <- resamples(list(RF=model_rf, MARS=model_mars, SVM=model_svmRadial))
 
 # Summary of the models performances
 summary(models_compare)
+
+# Draw box plots to compare models
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+bwplot(models_compare, scales=scales)
 ```
+
+####Why not run them all at once --- Ensemble Time ---
+
+```{r}
+algos <- c('rf', 'earth', 'svmRadial')
+
+set.seed(100)
+ensemble <- caretEnsemble::caretList(ruff_turnout ~ ., data=trainingData, methodList=algos) 
+results <- resamples(ensemble)
+summary(results)
+
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+bwplot(results, scales=scales)
+```
+
+
+
+####TIME TO STACK THEM ALL TOGETHER
+
+```{r}
+set.seed(100)
+
+stack <- caretEnsemble::caretStack(ensemble, methods = "glm", metric = "accuracy")
+
+print(stack)
+
+stack_pred <- predict(stack, testingData)
+head(stack_pred)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ####Visualization of Regsubsets
 
