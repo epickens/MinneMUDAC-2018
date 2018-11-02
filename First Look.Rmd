@@ -9,7 +9,7 @@ output: pdf_document
 
 * You may need to install some of the libraries below. To install package `tidyverse`, for example, run `install.packages("tidyverse")` in the console
 
-```{r}
+```{r, echo=FALSE, message=FALSE, error=FALSE}
 library(tidyverse)
 library(tidyselect)
 library(tibble)
@@ -20,7 +20,7 @@ library(car)
 library(gridExtra)
 library(broom)
 library(ggthemes)
-library(MASS)
+#library(MASS)
 library(leaps)
 library(GGally)
 library(aod)
@@ -37,7 +37,7 @@ library(glmnet)
 
 ####Load some data
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 registration <- read_xlsx("data/minnesota-voter-registration-by-county-since-2000.xlsx", skip = 1)
 elections <- read_xlsx("data/minnesota-election-statistics-1950-to-2016.xlsx", skip = 2, col_names = c("Year", "Est_Num_Elg_Voters", "Num_Voters", "Prcnt_Turnout", "Num_Elc_Day_Regis", "Prcnt_Voters_Regis_Elc_Day"))
 #dists <- read_csv("data/Minnesota_District_edit.csv")
@@ -45,7 +45,133 @@ dists <- read_csv("data/dists_t.csv", skip = 1)
 #Load demographic data
 demo15 <- read_csv("data/ACS_5YR/ACS_15_5YR_S0501/ACS_15_5YR_S0501_with_ann.csv", skip = 0)
 demo17 <- read_xls("data/ACS_1YR/ACS_17_1YR_S0601(1).xls", skip = 0)
+
 ```
+
+####Load elections stats
+
+```{r, echo=FALSE, warning=FALSE}
+elec16 <- read_xlsx("data/dist_elec_stats/2016-general-federal-state-results-by-precinct-official-1.xlsx")
+elec14 <- read_xlsx("data/dist_elec_stats/2014-general-federal-state-results-by-precinct-official.xlsx")
+elec12 <- read_xlsx("data/dist_elec_stats/2012mngeneralelectionresults_official_postrecounts.xlsx")
+elec10 <- read_xls("data/dist_elec_stats/2010_general_results_final.xls")
+elec08 <- read_xls("data/dist_elec_stats/2008_general_results.xls")
+```
+
+####Group Counts by Congressional District
+
+```{r}
+vote16 <- elec16 %>%
+  group_by(CONGDIST) %>%
+  summarise(tot_votes = sum(TOTVOTING))
+
+vote16 <- vote16 %>%
+  dplyr::select(tot_votes) %>%
+  filter(tot_votes < 1000000)
+
+vote14 <- elec14 %>%
+  group_by(CONGDIST) %>%
+  summarise(tot_votes = sum(TOTVOTING)) %>%
+  dplyr::select(tot_votes)
+
+vote12 <- elec12 %>%
+  group_by(CONGDIST) %>%
+  summarise(tot_votes = sum(TOTVOTING))
+
+vote12 <- vote12 %>%
+  dplyr::select(tot_votes) %>%
+  filter(tot_votes < 1000000)
+
+vote10 <- elec10 %>%
+  group_by(CG) %>%
+  summarise(tot_votes = sum(TotVoters))
+
+vote10 <- vote10 %>%
+  dplyr::select(tot_votes) %>%
+  filter(tot_votes < 1000000)
+
+vote08 <- elec08 %>%
+  group_by(CG) %>%
+  summarise(tot_votes = sum(TotVoters))
+
+vote08 <- vote08 %>%
+  dplyr::select(tot_votes) %>%
+  filter(tot_votes < 1000000)
+```
+
+####Load the Demographic Data that Matches the Years We Have Turnout Data for
+
+```{r}
+demo16 <- read_xls("data/ACS_1YR/ACS_16_1YR_BasicER.xls")
+demo14 <- read_xls("data/ACS_5YR/Basic/ACS_14_5YR_Ber.xls")
+demo12 <- read_xls("data/ACS_5YR/Basic/ACS_12_5YR_Ber.xls")
+demo10 <- read_xls("data/ACS_5YR/Basic/ACS_10_5YR_Ber.xls")
+demo08 <- read_xls("data/ACS_1YR/ACS_08_1YR_BasicER.xls")
+```
+
+####Let's Combine the Turnout Data With Our Features
+
+```{r}
+temp16 <- demo16 %>%
+  mutate(tot_votes = vote16$tot_votes)
+
+temp14 <- demo14 %>%
+  mutate(tot_votes = vote14$tot_votes)
+
+temp12 <- demo12 %>%
+  mutate(tot_votes = vote12$tot_votes)
+
+temp10 <- demo10 %>%
+  mutate(tot_votes = vote10$tot_votes)
+
+temp08 <- demo08 %>%
+  mutate(tot_votes = vote08$tot_votes)
+```
+
+####Let's Combine all of the Temp Tables and get a basic turnout %
+
+```{r}
+temp <- bind_rows(temp16, temp14, temp12, temp10, temp08)
+
+temp <- temp %>% rename(Tot_Pop = `Total population`) 
+  
+temp$Tot_Pop <- as.numeric(gsub(",","",temp$Tot_Pop))
+
+vars <- names(temp)[3:38]
+temp <- temp %>% mutate_each(funs(as.numeric(gsub("%", "", ., fixed = TRUE))/100), vars)
+
+temp <- temp %>%
+  mutate(over18 = `18to24` + `25to44` + `45to54` + `55to64` + `65to74` + `75_and_over`)
+
+temp1 <- temp %>% 
+  mutate(ruff_turnout = tot_votes / (Tot_Pop * over18)) 
+
+#Not sure if I should try to convert percentages
+#May or may not come back to this later
+```
+
+####Let's Finally create a usuable data set
+
+```{r}
+gen_elec_08_16 <- temp1 %>%
+  dplyr::select(-Tot_Pop, -tot_votes)
+
+sum(is.na(gen_elec_08_16))
+
+#remove the sole na 
+
+#I am choosing to replace the sole missing value that is already close to 0
+#with the 2014 value from the same district
+#assuming the the percentage of native people has not changed greatly
+#the new value is 0.003 
+
+gen_elec_08_16 <- gen_elec_08_16 %>%
+  replace_na(list(American_Indian_and_Alaska_Native = 0.003))
+```
+
+
+
+
 
 ###Creating 2014 Representative Vote By District
 
@@ -171,7 +297,7 @@ voters_2012 = county_2012 %>%
 
 ###Loading and Cleaning General Results Data for 2016: By Congressional District
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 genResults2016_congDist = read_excel("data/2016genresults.xlsx") %>%
   dplyr::select(CONGDIST, TOTVOTING) %>% 
   group_by(CONGDIST) %>%
@@ -180,6 +306,21 @@ genResults2016_congDist = read_excel("data/2016genresults.xlsx") %>%
 ```
 
 ###Loading and Cleaning ACS2016
+
+###NOTE
+###NOTE
+###NOTE
+###NOTE
+###NOTE
+
+###demo16 below this line is totally different from the one above it
+###the demo16 below is involved in a totally different series of methods
+
+###NOTE
+###NOTE
+###NOTE
+###NOTE
+###NOTE
 
 ```{r}
 demo16 = read_excel("data/ACS_1YR/ACS_16_1YR_S0601.xls")
