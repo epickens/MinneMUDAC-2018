@@ -255,6 +255,29 @@ y = trainingData$ruff_turnout
 
 ####We don't have any classes so we're really only looking at numeric prediction and possibly some clustering as far as I can see
 
+####RFE Recursive featuer selection
+
+```{r}
+set.seed(100)
+
+options(warn=-1)
+
+subsets <- c(1:5, 10, 15, 18)
+
+ctrl <- rfeControl(functions = rfFuncs,
+                   method = "repeatedcv",
+                   repeats = 5,
+                   verbose = FALSE)
+
+lmProfile <- rfe(x=trainingData[, 1:37], y=trainingData$ruff_turnout,
+                 sizes = subsets,
+                 rfeControl = ctrl)
+
+lmProfile
+```
+
+
+
 ```{r}
 bestFit = (regsubsets(ruff_turnout~., data = trainingData))
 bestFitSummary = summary(bestFit)
