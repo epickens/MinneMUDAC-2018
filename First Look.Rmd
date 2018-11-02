@@ -205,6 +205,8 @@ test17 <- test17 %>%
 ```{r}
 skimmed <- skim_to_wide(gen_elec_no_names)
 View(skimmed)
+
+#pairs(gen_elec_no_names[1:15], lower.panel = NULL)
 ```
 
 ####Let's finally do some modelling
