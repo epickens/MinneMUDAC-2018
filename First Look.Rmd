@@ -36,6 +36,7 @@ library(glmnet)
 library(caret)
 library(skimr)
 library(lattice)
+library(caretEnsemble)
 #‘httr’, ‘rvest’, ‘xml2’
 
 ```
