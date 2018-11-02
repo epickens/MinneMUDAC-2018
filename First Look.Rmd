@@ -36,6 +36,7 @@ library(glmnet)
 library(caret)
 library(skimr)
 library(lattice)
+library(RANN)
 #‘httr’, ‘rvest’, ‘xml2’
 
 ```
@@ -201,6 +202,22 @@ test17 <- demo17_b %>%
 
 test17 <- test17 %>%
   dplyr::select(-Subject)
+
+#fill in NA values
+
+####Will go back and re-Preprocess everything correctly in a minute
+
+####For now I'm going to be lazy
+####ANNNDDDDD.....
+
+test17 <- test17 %>%
+  replace_na(list(American_Indian_and_Alaska_Native = 0.000))
+
+#no_NA_anymore <- preProcess(test17, method='knnImpute')
+#no_NA_anymore
+
+#test17 <- predict(no_NA_anymore, newdata = test17)
+#anyNA(test17)
 ```
 
 ####Let's take a look at the data
@@ -424,8 +441,6 @@ scales <- list(x=list(relation="free"), y=list(relation="free"))
 bwplot(results, scales=scales)
 ```
 
-
-
 ####TIME TO STACK THEM ALL TOGETHER
 
 ```{r}
@@ -437,6 +452,10 @@ print(stack)
 
 stack_pred <- predict(stack, testingData)
 head(stack_pred)
+
+confusionMatrix(testingData$ruff_turnout, stack_pred)
+
+test17_pred <- predict(stack, test17)
 ```
 
 
