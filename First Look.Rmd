@@ -284,6 +284,23 @@ lmProfile <- rfe(x=trainingData[, 1:37], y=trainingData$ruff_turnout,
 lmProfile
 ```
 
+####Fuck it let's run MARS
+
+```{r}
+# Set the seed for reproducibility
+set.seed(100)
+
+# Train the model using randomForest and predict on the training data itself
+model_mars = train(ruff_turnout ~ ., data=trainingData, method='earth')
+fitted <- predict(model_mars)
+
+#accuracy plot
+plot(model_mars, main="MARS Accuracies")
+
+#Check the importance of the variables
+varimp_mars <- varImp(model_mars)
+plot(varimp_mars, main="Variable Importance with MARS")
+```
 
 
 
