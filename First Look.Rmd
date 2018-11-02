@@ -37,6 +37,7 @@ library(caret)
 library(skimr)
 library(lattice)
 library(RANN)
+library(caretEnsemble)
 #‘httr’, ‘rvest’, ‘xml2’
 
 ```
