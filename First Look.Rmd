@@ -273,6 +273,19 @@ predict.lm(rgAttempt, testingData)
 mean((testingData$ruff_turnout - predict.lm(rgAttempt, testingData)) ^ 2)
 ```
 
+```{r}
+cor_training = dplyr::select(trainingData, which(!sapply(trainingData, is.factor))) %>%
+  cor(., use = "pair")
+
+cor_training_df = as.data.frame(cor_training, row.names=NULL) %>%
+  mutate(var1 = row.names(cor_training)) %>%
+  gather(Male:over18, key=var2, value = correlation)
+
+ggplot(cor_training_df) +
+  geom_tile(aes(x=var1, y=var2, fill=correlation)) +
+theme(axis.text.x=element_text(angle=90,
+vjust=0, hjust=1))
+```
 
 ```{r}
 pr.out = prcomp(trainingData, scale = TRUE)
