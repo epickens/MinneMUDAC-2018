@@ -262,7 +262,7 @@ set.seed(100)
 
 options(warn=-1)
 
-subsets <- c(1:5, 10, 15, 18)
+subsets <- c(1:5, 10, 15, 20, 25, 30, 35, 37)
 
 ctrl <- rfeControl(functions = rfFuncs,
                    method = "repeatedcv",
@@ -275,6 +275,8 @@ lmProfile <- rfe(x=trainingData[, 1:37], y=trainingData$ruff_turnout,
 
 lmProfile
 ```
+
+
 
 
 
