@@ -307,12 +307,97 @@ summary(model_mars)
 model_mars
 
 
-head(testingData)
+
+
+head(testingData$ruff_turnout)
 pred <- predict(model_mars, testingData)
 head(pred)
 
-confusionMatrix(reference = testingData$ruff_turnout, data = pred, mode='everything', positive='MM')
+test.df <- as.data.frame(testingData)
+pred.df <- as.data.frame(pred)
+test_temp <- testingData$ruff_turnout
+
+identical(levels(test.df$ruff_turnout), levels(pred.df))
+
+confusionMatrix(reference = test.df$ruff_turnout, data = pred.df, mode='everything', positive='MM')
+
+
 ```
+
+####Okay so that is not working properly so I'm going to move on and come back to it
+
+####Let's get some hyperparams (parameters set before training to let this process go soomthly) going 
+
+```{r}
+paramControl <- trainControl(method = 'cv', number = 5, savePredictions = 'final', classProbs = T, summaryFunction = twoClassSummary)
+
+# ^^^ 5 fold cross validation that saves predictions and returns class probabilities 
+
+marsGrid <-  expand.grid(nprune = c(2, 4, 6, 8, 10), 
+                        degree = c(1, 2, 3))
+
+set.seed(100)
+model_mars2 = train(ruff_turnout ~ ., data=trainingData, method='earth', tuneLength = 5, tuneGrid = marsGrid, tuneLength = 5, metric='ROC', trControl = paramControl)
+model_mars2
+
+# Step 2: Predict on testData and Compute the confusion matrix
+predicted2 <- predict(model_mars2, testingData)
+confusionMatrix(reference = testingData$ruff_turnout, data = predicted2, mode='everything', positive='MM')
+
+
+```
+
+####Never mind mars is still being a pain, moving on
+
+####Let's just run a bunch of shit and then compare
+
+####First up is random forest
+
+```{r}
+set.seed(100)
+
+# Train the model using random forest
+model_rf = train(ruff_turnout ~ ., data=trainingData, method='rf')
+
+model_rf
+plot(model_rf)
+summary(model_rf)
+```
+
+####Now xgBoost Dart
+
+```{r}
+set.seed(100)
+
+# Train the model using MARS
+model_xgbDART = train(ruff_turnout ~ ., data=trainingData, method='xgbDART', tuneLength=5, verbose=F)
+model_xgbDART
+```
+
+####Throw in a Support Vector Machine (SVM)
+
+```{r}
+set.seed(100)
+
+# Train the model using MARS
+model_svmRadial = train(ruff_turnout ~ ., data=trainingData, method='svmRadial', tuneLength=15)
+model_svmRadial
+```
+
+####Let's compare and see how they fair
+
+```{r}
+# Compare model performances using resample()
+models_compare <- resamples(list(RF=model_rf, XGBDART=model_xgbDART, MARS=model_mars, SVM=model_svmRadial))
+
+# Summary of the models performances
+summary(models_compare)
+```
+
+
+
+
+
 
 
 
