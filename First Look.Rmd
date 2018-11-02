@@ -311,7 +311,9 @@ head(testingData)
 pred <- predict(model_mars, testingData)
 head(pred)
 
-confusionMatrix(reference = testingData$ruff_turnout, data = pred, mode='everything', positive='MM')
+confusionMatrix(reference = as.factor(testingData$ruff_turnout), data = as.factor(as.vector(pred)), mode='everything', positive='MM')
+something = as.factor(testingData$ruff_turnout)
+something2 = as.factor(as.vector(pred))
 ```
 
 
@@ -680,4 +682,54 @@ deseasonal_cnt <- seasadj(decomp)
 fit = auto.arima(deseasonal_cnt, seasonal=FALSE)
 fcast <- forecast(fit, h=30)
 plot(fcast)
+
+```
+
+```{r}
+ge2008 = read_excel("data/elections/2008NovemberGeneralElection.xlsx", skip = 1) %>%
+  filter(X__1 == "Minnesota") %>%
+  mutate(GeneralElection = "yes", year = 2008)
+
+pe2008 = read_excel("data/elections/2008PrimaryElections.xlsx", skip = 1) %>%
+  filter(`State/Territory` == "Minnesota") %>%
+  mutate(GeneralElection = "no", year = 2008) %>%
+  select(-Date, -3, -9)
+
+ge2010 = read_excel("data/elections/2010NovemberGeneralElection.xlsx", skip = 1) %>%
+  filter(X__1 == "Minnesota") %>%
+  mutate(GeneralElection = "yes", year = 2010)
+
+ge2012 = read_excel("data/elections/2012NovemberGeneralElection.xlsx", skip = 1) %>%
+  filter(X__1 == "Minnesota") %>%
+  mutate(GeneralElection = "yes", year = 2012)
+
+pe2012 = read_excel("data/elections/2012PrimaryElections.xlsx", skip = 1) %>%
+  filter(`State/Territory` == "Minnesota") %>%
+  mutate(GeneralElection = "no", year = 2012) %>%
+  select(-Date)
+
+pe2012[1, 6] = 17376
+pe2012[1, 9] = 66292
+
+pe2012 = pe2012 %>% slice(1) %>%
+  select(-2, -8)
+  
+
+ge2014 = read_excel("data/elections/2014NovemberGeneralElection.xlsx", skip = 1) %>%
+  filter(X__1 == "Minnesota") %>%
+  mutate(GeneralElection = "yes", year = 2014) %>%
+  select(-15)
+
+ge2016 = read_excel("data/elections/2016NovemberGeneralElection.xlsx", skip = 1) %>%
+  filter(X__1 == "Minnesota") %>%
+  mutate(GeneralElection = "yes", year = 2016) %>%
+  select(-2, -3, -17)
+
+pe2016 = read_excel("data/elections/2016PrimaryElections.xlsx", skip = 1) %>%
+  filter(`State` == "Minnesota") %>%
+  mutate(GeneralElection = "no", year = 2016) %>%
+  select(-1, -3, -4, -10, -12, -13)
+
+primary = bind_rows(pe2008, pe2012, pe2016)
+general = bind_rows(ge2008, ge2010, ge2012, ge2014, ge2016)
 ```
