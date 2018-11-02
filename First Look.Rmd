@@ -255,6 +255,14 @@ y = trainingData$ruff_turnout
 
 ####We don't have any classes so we're really only looking at numeric prediction and possibly some clustering as far as I can see
 
+####These are the models that blessed CARET allows us to choose from
+
+```{r}
+modelnames <- paste(names(getModelInfo()), collapse=',  ')
+modelnames
+```
+
+
 ####RFE Recursive featuer selection
 
 ```{r}
@@ -275,6 +283,8 @@ lmProfile <- rfe(x=trainingData[, 1:37], y=trainingData$ruff_turnout,
 
 lmProfile
 ```
+
+
 
 
 
