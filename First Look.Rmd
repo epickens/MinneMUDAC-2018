@@ -274,11 +274,11 @@ set.seed(100)
 
 lm.basic <- lm(ruff_turnout ~ 1, data = gen_elec_no_names)
 
-lm.full <- lm(ruff_turnout ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level, data = gen_elec_no_names)
+lm.full <- lm(ruff_turnout ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level + repub + dem + Elec_Type_Gen + Elec_Type_Mid, data = gen_elec_no_names)
 
-stepfwd <- stepAIC(lm.basic, scope = list(lower = ~ 1, upper = ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level), direction = "both")
+stepfwd <- stepAIC(lm.basic, scope = list(lower = ~ 1, upper = ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level + repub + dem + Elec_Type_Gen + Elec_Type_Mid), direction = "both")
 
-stepbk <- stepAIC(lm.full, scope = list(lower = ~ 1, upper = ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level), direction = "both")
+stepbk <- stepAIC(lm.full, scope = list(lower = ~ 1, upper = ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level + repub + dem + Elec_Type_Gen + Elec_Type_Mid), direction = "both")
 
 summary(stepfwd)
 summary(stepbk)
@@ -326,7 +326,7 @@ set.seed(100)
 
 options(warn=-1)
 
-subsets <- c(1:5, 10, 15, 20, 25, 30, 35, 37)
+subsets <- c(3:5, 10, 15, 20, 25, 30, 35, 37)
 
 ctrl <- rfeControl(functions = rfFuncs,
                    method = "repeatedcv",
@@ -520,9 +520,9 @@ resid %>%
   gf_hline(yintercept = 0)
 
 
-confusionMatrix(stack_pred, testingData$ruff_turnout)
+#confusionMatrix(stack_pred, testingData$ruff_turnout)
 
-table(stack_pred, testingData$ruff_turnout)
+#table(stack_pred, testingData$ruff_turnout)
 
 #confusionMatrix(testingData$ruff_turnout, stack_pred)
 
@@ -531,6 +531,16 @@ test17_pred <- predict(stack, test17)
 plot(stack)
 ```
 
+####Nueral Networks
+
+```{r}
+set.seed(100)
+
+# Nueral Net: Quantile Regression Neural Network
+model_QRNN = train(ruff_turnout ~ ., data=trainingData, method='qrnn')
+model_QRNN
+
+```
 
 
 
