@@ -1,6 +1,6 @@
 ---
-title: "Untitled"
-author: "Chiraag Gohel"
+title: "MinneMudac 2018"
+author: "Elliot Pickens & Chiraag Gohel"
 date: "11/3/2018"
 output: ioslides_presentation
 ---
@@ -9,27 +9,59 @@ output: ioslides_presentation
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## R Markdown
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(tidyselect)
+library(tibble)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+library(ggformula)
+library(car)
+library(gridExtra)
+library(broom)
+library(ggthemes)
+library(MASS)
+library(leaps)
+library(GGally)
+library(aod)
+library(readr)
+library(readxl)
+library(stringr)
+library(forecast) 
+library(tseries)
+library(tabulizer)
+library(glmnet)
+library(caret)
+library(skimr)
+library(lattice)
+library(RANN)
+library(caretEnsemble)
+```
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+## Intro
 
-## Slide with Bullets
+
+
+## Data Carpentry
 
 - Bullet 1
 - Bullet 2
 - Bullet 3
 
-## Slide with R Output
+## Feature Exploration
 
 ```{r cars, echo = TRUE}
 summary(cars)
 ```
 
-## Slide with Plot
+## Regression Modelling
 
 ```{r pressure}
 plot(pressure)
 ```
+
+##Black Boxes
 
