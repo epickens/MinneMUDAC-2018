@@ -1,0 +1,73 @@
+---
+title: "Script"
+author: "Elliot Pickens"
+date: "November 2, 2018"
+output: html_document
+---
+
+
+This is going to start basic and become expanded upon over time.
+
+####Part 1: Getting and Organizing Data
+
+We sourced our demographic data from the ACS (American Community Survey).
+
+We got our election results from the Office of the Minnesota Secretary of State.
+
+Because there is only ACS data available through 2017 we had to settle for that.
+
+We choose to focus on the election years 2008, 10, 12, 14, & 16 because the data for both election results and demographics were readily availible and because they are the most consequential recent election years.
+
+After cleaning up the data sets with the use of the ***tidyverse*** and some good old fashioned excel we had demographics data for all 8 congressional districts and their election outcomes over an 8 year strech.
+
+Sadly, getting a proper VEP (voting elegible population) estimate did not prove to be so easy (at the congressional district level) so we had to come up with a rough estimatation of it, and consequentially -- voter turnout.
+
+We got our estimate by taking the the total number of votes cast in each district and dividing it by the population over 18 in the district. As a result our turnout percentages are definetly a little low (given we don't subtract non-citizens or felons or anyone else for that matter from the over 18 population), but these estimates are consistently low so at least there's that.
+
+####Part 2: Modelling -- The Beginnings
+
+Before modelling we had to prep our data by pre processing it. We did this simply using the ***caret*** package.
+
+We then took a look at what features are most important using Recursive Feature Elimination.
+
+At this point we were more or less ready to begin modelling.
+
+The data we were trying to predict in this case was voter turnout.
+
+Voter turnout comes in percentages so we had to decide on a method that would allow use to do some numeric prediction (as opposed to classification where we would be trying to predict a outcome that has a certian fixed set of possiblities -- like whether a coin is heads or tails (0 or 1) -- or whether a republican, democrat, or independent is going to win an election (0, 1, or 2)).
+
+This narrowed down our choices of models quite a bit, but still left us with a lot of options.
+
+So we decided we would go down the middle and try two different approaches to solving the problem -- simplicity and accuracy.
+
+Simplicity meaning we wanted to create a model that was transparent and explainable.
+
+Accuracy meaning that we wanted to throw everything at the wall to create an accurate model by any means necessary.
+
+####Part 3: Simplicity
+
+Given that we wanted to create a transparent model capable to numeric prediction it only made sense to create a regression model.
+
+With regression we are basically just fitting a line to the data, or in our case (where we have 37 different data points to predict on) a multidimensional plane.
+
+So we fit several regression models using a series of different methods.
+
+First we just messed around by fitting the variables that RFE.
+
+We were able to get some pretty good models using just these variables, but we also decided to take it step further.
+
+We fit two models a basic one and a fully saturated one (basic meaning a straight line, and fully saturated meaning our outcome was fit against everything). We then used forward-backward selection to slowly add and remove variables to the models -- evaluating them at each step -- to slowly exhume better more accurate regression models from the initial crude ones.
+
+####Part 4: Accuracy
+
+Basic regression is great because you can always find the the forumla that is producing your results, but if you are just looking for accuracy it doesn't always produce the best results.
+
+So we moved on to other more complex -- black box -- methods in search of better accuracy.
+
+We initially took a look at using RF (random forest), MARS (multivariate regression splines), and SVM (support vector machine) methods to do this. With these methods we had some varied but promising results.
+
+So why not combine them?
+
+Well that's exactly what we did by creating an ensemble method from all of them. Basically we are compensating for having a not so great model by throwing additional computation at it. We've made an ensemble of methods to do just this, because by combining hypotheses (read: model) we can hopefully find form a better hypothesis.
+
+

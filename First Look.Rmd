@@ -454,7 +454,19 @@ print(stack)
 stack_pred <- predict(stack, testingData)
 head(stack_pred)
 
-confusionMatrix(testingData$ruff_turnout, stack_pred)
+#MSE
+mean((testingData$ruff_turnout - stack_pred) ^ 2)
+
+resid <- (testingData$ruff_turnout - stack_pred)
+resid <- data.frame(resid, seq(1:7))
+resid %>%
+  gf_point(resid ~ seq.1.7.) %>%
+  gf_hline(yintercept = 0)
+
+
+confusionMatrix(stack_pred, testingData$ruff_turnout)
+
+table(stack_pred, testingData$ruff_turnout)
 
 test17_pred <- predict(stack, test17)
 ```
