@@ -554,7 +554,7 @@ bwplot(models_compare, scales=scales)
  bwplot(results, scales=scales) 
 ```
 
-##Results
+##Ensemble Results
 
 ```{r}
  #stack_pred <- predict(stack, testingData) 
@@ -582,7 +582,7 @@ ggplot(resultsTable, aes(x)) +
 
 ![](/home/elliot/MinneMUDAC-2018/nn0.png)
 
-##Results
+##QRNN Results
 
 ![](/home/elliot/MinneMUDAC-2018/nn.png)
 
