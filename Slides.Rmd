@@ -532,41 +532,57 @@ scales <- list(x=list(relation="free"), y=list(relation="free"))
 bwplot(models_compare, scales=scales)
 ```
 
-<!-- ##Quantile Regression Neural Network -->
+##Ensemble
 
-<!-- ```{r} -->
-<!-- #model_QRNN = train(ruff_turnout ~ ., data=trainingDataMinusDR, method='qrnn') -->
-<!-- #plot(model_QRNN) -->
-<!-- `` -->
+```{r, message=FALSE, warning=FALSE}
+ set.seed(100)
 
-<!-- ```{r} -->
-<!-- set.seed(100) -->
+ #stackControl <- trainControl(method="repeatedcv", 
+ #                             number=10, 
+ #                             repeats=3, 
+ #                             savePredictions=TRUE, 
+ #                             classProbs=TRUE) 
 
-<!-- #stackControl <- trainControl(method="repeatedcv", -->
-<!-- #                             number=10, -->
-<!-- #                             repeats=3, -->
-<!-- #                             savePredictions=TRUE, -->
-<!-- #                             classProbs=TRUE) -->
+ algos <- c('rf', 'earth', 'svmRadial') 
 
-<!-- algos <- c('rf', 'earth', 'svmRadial', 'xgbDART') -->
+ ensemble <- caretEnsemble::caretList(ruff_turnout ~ ., data=trainingDataMinusDR, methodList=algos) 
+ results <- resamples(ensemble) 
+ stack <- caretEnsemble::caretStack(ensemble, methods = "glm") 
 
-<!-- ensemble <- caretEnsemble::caretList(ruff_turnout ~ ., data=trainingDataMinusDR, methodList=algos) -->
-<!-- results <- resamples(ensemble) -->
-<!-- stack <- caretEnsemble::caretStack(ensemble, methods = "glm") -->
-<!-- stack_pred <- predict(stack, testingData) -->
 
-<!-- #MSE -->
-<!-- mean((testingData$ruff_turnout - stack_pred) ^ 2) -->
+ scales <- list(x=list(relation="free"), y=list(relation="free")) 
+ bwplot(results, scales=scales) 
+```
 
-<!-- resid <- (testingData$ruff_turnout - stack_pred) -->
-<!-- resid <- data.frame(resid, seq(1:7)) -->
-<!-- resid %>% -->
-<!--   gf_point(resid ~ seq.1.7.) %>% -->
-<!--   gf_hline(yintercept = 0) -->
+##Results
 
-<!-- scales <- list(x=list(relation="free"), y=list(relation="free")) -->
-<!-- bwplot(results, scales=scales) -->
-<!-- ``` -->
+```{r}
+ #stack_pred <- predict(stack, testingData) 
+
+ #MSE 
+# mean((testingData$ruff_turnout - stack_pred) ^ 2) 
+
+# resid <- (testingData$ruff_turnout - stack_pred) 
+# resid <- data.frame(resid, seq(1:7)) 
+ #resid %>% 
+  # gf_point(resid ~ seq.1.7.) %>% 
+   #gf_hline(yintercept = 0) 
+
+xvector = c("RE1", "RE2", "RE3", "RE4", "RE5", "RE6", "RE7")
+predVector <- predict(stack, testingData) 
+resultsTable = tibble(x = xvector, y = testingData$ruff_turnout, z = predVector)
+ggplot(resultsTable, aes(x)) +
+  geom_point(aes(y = y, colour = "Test Data")) + 
+  geom_point(aes(y = z, colour = "Model Predictions")) +
+  labs(title = "Test Turnout vs. Predicted Turnout", x = "Random Election", y = "Turnout Fraction")
+```
+
+
+
+```{r}
+#model_QRNN = train(ruff_turnout ~ ., data=trainingDataMinusDR, method='qrnn')
+#plot(model_QRNN)
+```
 
 
 
