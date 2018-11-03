@@ -1,6 +1,6 @@
 ---
 title: "MinneMudac 2018"
-author: "Elliot Pickens & Chiraag Gohel"
+author: "Elliot Pickens, Chiraag Gohel, Jordan Navarro, and William Dudarov"
 date: "11/3/2018"
 output: ioslides_presentation
 ---
@@ -368,7 +368,6 @@ Where:
 - <font size = "4">$X_4$ = Percentage of distrcit population over the age of 18</font>
 
 ```{r}
-delta = cv.glm(trainingData, newFit)$delta[1]
 mseReg = mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
 ```
 
@@ -380,6 +379,16 @@ head(dplyr::select(testingData, FortyFiveTo54, Divorced_separated, Elec_Type_Gen
 
 ##Regression: Predictions - Results
 
+What type of results are we looking for?
+
+- Prediction accuracy
+
+- Do our predicted values rise and fall in tandem with actual turnout data?
+
+- Is there consistent under/over-estimation?
+
+##Regression: Predictions - Results
+
 ```{r}
 xvector = c("RE1", "RE2", "RE3", "RE4", "RE5", "RE6", "RE7")
 predVector = predict.glm(newFit, testingData)
@@ -388,8 +397,17 @@ ggplot(resultsTable, aes(x)) +
   geom_point(aes(y = y, colour = "Test Data")) + 
   geom_point(aes(y = z, colour = "Model Predictions")) +
   labs(title = "Test Turnout vs. Predicted Turnout", x = "Random Election", y = "Turnout Fraction")
-
 ```
+
+##Regression: Prediction - Insights
+
+- Mean squared error of $.102\%$
+
+- The modeled predictions dip and spike according to the rates of the test data
+
+- The model tends to underestimate
+
+- Less accurate predictions seem to occur when the actual turnout is significantly higher or lower than the median turnout
 
 ##Regression: Industry
 ```{r, echo=FALSE}
@@ -408,21 +426,9 @@ acs14 = lapply(acs14, function (x) gsub("%", "", x)) %>%
   lapply(function (x) gsub(",", "", x)) %>%
   lapply(function (x) as.numeric(x)) %>%
   as.tibble() %>%
-  mutate(votingPop = `Total population`*(EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus), ruff_turnout = tot_votes/votingPop)
+  mutate(votingPop = `Total population`*((EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus)/100), ruff_turnout = tot_votes/votingPop) %>%
+  dplyr::select(-14:-20)
 ```
-
-#BIC
-newFit.step <- stepAIC(newFit, scope = list(lower = ~ 1, upper = ~ .), direction = "both", k = log(nrow(trainingData)))
-
-#AIC
-newFit.step <- stepAIC(newFit, scope = list(lower = ~ 1, upper = ~ .), direction = "both", k = log(nrow(trainingData)))
-
-#Nothing Happens when it is run on the model you put in!!! So we should be good
-
-mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
-#You might want to change the labels on this
-plot(newFit$residuals)
-
 
 ##Black Boxes
 
@@ -445,43 +451,6 @@ bwplot(models_compare, scales=scales)
 ```
 
 
-##Ensembles 
 
-```{r}
-# set.seed(100)
-# 
-# #stackControl <- trainControl(method="repeatedcv", 
-# #                             number=10, 
-# #                             repeats=3,
-# #                             savePredictions=TRUE, 
-# #                             classProbs=TRUE)
-# 
-# algos <- c('rf', 'earth', 'svmRadial', 'xgbDART')
-# 
-# ensemble <- caretEnsemble::caretList(ruff_turnout ~ ., data=trainingDataMinusDR, methodList=algos) 
-# results <- resamples(ensemble)
-# stack <- caretEnsemble::caretStack(ensemble, methods = "glm")
-# stack_pred <- predict(stack, testingData)
-# 
-# #MSE
-# mean((testingData$ruff_turnout - stack_pred) ^ 2)
-# 
-# resid <- (testingData$ruff_turnout - stack_pred)
-# resid <- data.frame(resid, seq(1:7))
-# resid %>%
-#   gf_point(resid ~ seq.1.7.) %>%
-#   gf_hline(yintercept = 0)
-# 
-# scales <- list(x=list(relation="free"), y=list(relation="free"))
-# bwplot(results, scales=scales)
-```
-
-
-##Quantile Regression Neural Network
-
-```{r}
-#model_QRNN = train(ruff_turnout ~ ., data=trainingDataMinusDR, method='qrnn')
-#plot(model_QRNN)
-```
 
 
