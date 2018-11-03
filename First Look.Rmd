@@ -505,6 +505,98 @@ plot(stack)
 
 
 
+####Basic Data Vis
+####Basic Data Vis
+####Basic Data Vis
+####Basic Data Vis
+####Basic Data Vis
+
+```{r}
+gen_turnout <- read_xlsx("data/turnout_2000-2016.xlsx")
+
+gen_turnout %>%
+  gf_point(Percent.Turnout ~ Year, ylab = "Percent Turnout", title = "Statewide General Election Turnout") %>%
+  gf_lm()
+```
+
+####By District
+
+```{r}
+
+graph_data <- read_xlsx("data/test_data.xlsx")
+
+cg1 <- graph_data %>%
+  filter(Subject == "CG1")
+cg2 <- graph_data %>%
+  filter(Subject == "CG2")
+cg3 <- graph_data %>%
+  filter(Subject == "CG3")
+cg4 <- graph_data %>%
+  filter(Subject == "CG4")
+cg5 <- graph_data %>%
+  filter(Subject == "CG5")
+cg6 <- graph_data %>%
+  filter(Subject == "CG6")
+cg7 <- graph_data %>%
+  filter(Subject == "CG7")
+cg8 <- graph_data %>%
+  filter(Subject == "CG8")
+
+#par()
+
+#Using rough turnout
+
+par(mfrow=c(2,2))
+
+cg1 %>%
+  gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG1", ylab = "Estimate of Turnout Percentage")
+cg2 %>%
+  gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG2", ylab = "Estimate of Turnout Percentage")
+cg3 %>%
+  gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG3", ylab = "Estimate of Turnout Percentage")
+cg4 %>%
+  gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG4", ylab = "Estimate of Turnout Percentage")
+cg5 %>%
+  gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG5", ylab = "Estimate of Turnout Percentage")
+cg6 %>%
+  gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG6", ylab = "Estimate of Turnout Percentage")
+cg7 %>%
+  gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG7", ylab = "Estimate of Turnout Percentage")
+cg8 %>%
+  gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG8", ylab = "Estimate of Turnout Percentage")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
