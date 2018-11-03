@@ -10,34 +10,35 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-library(tidyverse)
-library(tidyselect)
-library(tibble)
-library(tidyr)
+
+library(aod)
+library(boot)
+library(broom)
+library(car)
+library(caret)
+library(caretEnsemble)
 library(dplyr)
+library(forecast) 
+library(GGally)
+library(ggformula)
 library(ggplot2)
 library(ggthemes)
-library(ggformula)
-library(car)
+library(glmnet)
 library(gridExtra)
-library(broom)
-library(ggthemes)
-library(MASS)
+library(lattice)
 library(leaps)
-library(GGally)
-library(aod)
+library(MASS)
+library(RANN)
 library(readr)
 library(readxl)
-library(stringr)
-library(forecast) 
-library(tseries)
-library(tabulizer)
-library(glmnet)
-library(caret)
 library(skimr)
-library(lattice)
-library(RANN)
-library(caretEnsemble)
+library(stringr)
+library(tabulizer)
+library(tibble)
+library(tidyr)
+library(tidyselect)
+library(tidyverse)
+library(tseries)
 ```
 
 
@@ -286,8 +287,28 @@ data_frame(Cp = bestFitSummary$cp,
 
 ##Regression Analysis
 
+```{r, echo=TRUE}
+newFit = glm(ruff_turnout~Under5 + FiveTo17 + 
+             FortyFiveTo54 + One_9999_loss,
+             data = trainingData)
+```
+
+* Our model can be depicted as: 
+
+$$Y = -0.92 + 10.13X_1 - 3.39X_2 + 9.32X_3 + 2.28X_4$$
+
+Where:
+
+- <font size = "4">$Y$ = Voter turnout</font>
+- <font size = "4">$X_1$ = Percentage of district population under the age of five</font>
+- <font size = "4">$X_2$ = Percentage of district population within the ages of five to seventeen</font>
+- <font size = "4">$X_3$ = Percentage of district population within the ages of forty-five to fifty-four</font>
+- <font size = "4">$X_4$ = Percentage of distrcit population with an annual income of $20,000</font>
+
 ```{r}
-newFit = lm(ruff_turnout~Under5 + FiveTo17 + FortyFiveTo54 + One_9999_loss, data = trainingData)
+delta = cv.glm(trainingData, newFit)$delta[1]
+mseReg = mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
+```
 
 #BIC
 newFit.step <- stepAIC(newFit, scope = list(lower = ~ 1, upper = ~ .), direction = "both", k = log(nrow(trainingData)))

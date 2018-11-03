@@ -12,36 +12,34 @@ output: pdf_document
 * You may need to install some of the libraries below. To install package `tidyverse`, for example, run `install.packages("tidyverse")` in the console
 
 ```{r, echo=FALSE, message=FALSE, error=FALSE}
-library(tidyverse)
-library(tidyselect)
-library(tibble)
-library(tidyr)
+library(aod)
+library(boot)
+library(broom)
+library(car)
+library(caret)
+library(caretEnsemble)
 library(dplyr)
+library(forecast) 
+library(GGally)
+library(ggformula)
 library(ggplot2)
 library(ggthemes)
-library(ggformula)
-library(car)
+library(glmnet)
 library(gridExtra)
-library(broom)
-library(ggthemes)
-library(MASS)
+library(lattice)
 library(leaps)
-library(GGally)
-library(aod)
+library(MASS)
+library(RANN)
 library(readr)
 library(readxl)
-library(stringr)
-library(forecast) 
-library(tseries)
-library(tabulizer)
-library(glmnet)
-library(caret)
 library(skimr)
-library(lattice)
-library(RANN)
-library(caretEnsemble)
-#‘httr’, ‘rvest’, ‘xml2’
-
+library(stringr)
+library(tabulizer)
+library(tibble)
+library(tidyr)
+library(tidyselect)
+library(tidyverse)
+library(tseries)
 ```
 
 ####Load some data
@@ -1005,4 +1003,11 @@ pe2016 = read_excel("data/elections/2016PrimaryElections.xlsx", skip = 1) %>%
 
 primary = bind_rows(pe2008, pe2012, pe2016)
 general = bind_rows(ge2008, ge2010, ge2012, ge2014, ge2016)
+```
+
+```{r}
+yes = lm(ruff_turnout~Under5 + FiveTo17 + FortyFiveTo54 + White + Hispanic + White_alone + Now_married_not_separated + Some_college_or_associate_degree + One_9999_loss, data = trainingData)
+
+mean((testingData$ruff_turnout - predict.lm(yes, testingData)) ^ 2)
+
 ```
