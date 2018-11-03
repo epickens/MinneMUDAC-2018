@@ -55,8 +55,9 @@ gen_turnout %>%
 ## Turnout by District from 2008-2016
 
 ```{r}
-
 graph_data <- read_xlsx("data/test_data.xlsx")
+
+
 
 cg1 <- graph_data %>%
   filter(Subject == "CG1")
@@ -75,32 +76,69 @@ cg7 <- graph_data %>%
 cg8 <- graph_data %>%
   filter(Subject == "CG8")
 
-#par()
+
 
 #Using rough turnout
 
-par(mfrow=c(2,2))
 
-cg1 %>%
+a = cg1 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG1", ylab = "Estimate of Turnout Percentage")
-cg2 %>%
+b = cg2 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG2", ylab = "Estimate of Turnout Percentage")
-cg3 %>%
+d = cg3 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG3", ylab = "Estimate of Turnout Percentage")
-cg4 %>%
+c = cg4 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG4", ylab = "Estimate of Turnout Percentage")
-cg5 %>%
+e = cg5 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG5", ylab = "Estimate of Turnout Percentage")
-cg6 %>%
+f = cg6 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG6", ylab = "Estimate of Turnout Percentage")
-cg7 %>%
+g = cg7 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG7", ylab = "Estimate of Turnout Percentage")
-cg8 %>%
+h = cg8 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG8", ylab = "Estimate of Turnout Percentage")
 
+a1 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg1) +
+  labs(title = "Turnout Estimate: Cong. District 1", y = "Estimate of Turnout Percentage")
+
+a2 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg2) +
+  labs(title = "Turnout Estimate: Cong. District 2", y = "")
+  
+a3 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg3) +
+  labs(title = "Turnout Estimate: Cong. District 3", y = "Estimate of Turnout Percentage")
+
+a4 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg4) +
+  labs(title = "Turnout Estimate: Cong. District 4", y = "")
+
+a5 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg5) +
+  labs(title = "Turnout Estimate: Cong. District 5", y = "Estimate of Turnout Percentage")
+
+a6 = 
+  ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg6) +
+  labs(title = "Turnout Estimate: Cong. District 6", y = "")
+
+a7 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg7) +
+  labs(title = "Turnout Estimate: Cong. District 7", y = "Estimate of Turnout Percentage")
+
+a8 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg8) +
+  labs(title = "Turnout Estimate: Cong. District 8", y = "")
+
+grid.arrange(a1, a2, a3, a4)
 
 ```
 
+##Turnout by District from 2008-2016 (Cont.)
+```{r}
+grid.arrange(a5, a6, a7, a8)
+```
 
 ##Datums
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
