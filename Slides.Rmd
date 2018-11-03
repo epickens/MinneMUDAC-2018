@@ -48,6 +48,7 @@ library(caretEnsemble)
 
 ##Datums
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
+
 elec16 <- read_xlsx("data/dist_elec_stats/2016-general-federal-state-results-by-precinct-official-1.xlsx")
 elec14 <- read_xlsx("data/dist_elec_stats/2014-general-federal-state-results-by-precinct-official.xlsx")
 elec12 <- read_xlsx("data/dist_elec_stats/2012mngeneralelectionresults_official_postrecounts.xlsx")
@@ -198,28 +199,17 @@ skimmed$hist
 ```
 
 
+## Intro
+
 ## Data Carpentry
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+- Demographic data sourced from the ACS (American Community Survey).
 
-## Feature Exploration
-
-```{r cars, echo = TRUE}
-summary(cars)
-```
-
-## Regression Modelling
-
-```{r pressure}
-plot(pressure)
-```
-
+- Election results sourced from the Office of the Minnesota Secretary of State.
 
 ## Regsubsets
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 bestFit = (regsubsets(ruff_turnout~., data = trainingData))
 bestFitSummary = summary(bestFit)
 data_frame(Cp = bestFitSummary$cp,
@@ -231,6 +221,30 @@ data_frame(Cp = bestFitSummary$cp,
     geom_line() + geom_point() + ylab('') + xlab('Number of Variables Used') +
     facet_wrap(~ value_type, scales = 'free') + 
     scale_x_continuous(breaks = 1:10)
+```
+
+##Regsubsets (cont.)
+
+* $C_p$ and BIC rates are various error terms used to analyze subset model selection
+* Looking to maximize the adjusted R-squared value, and minimize the other two error rates
+* Optimal variable selection: 3-5 variables
+
+##Regression Analysis
+
+```{r}
+newFit = lm(ruff_turnout~Under5 + FiveTo17 + FortyFiveTo54 + One_9999_loss, data = trainingData)
+
+#BIC
+newFit.step <- stepAIC(newFit, scope = list(lower = ~ 1, upper = ~ .), direction = "both", k = log(nrow(trainingData)))
+
+#AIC
+newFit.step <- stepAIC(newFit, scope = list(lower = ~ 1, upper = ~ .), direction = "both", k = log(nrow(trainingData)))
+
+#Nothing Happens when it is run on the model you put in!!! So we should be good
+
+mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
+#You might want to change the labels on this
+plot(newFit$residuals)
 ```
 
 ##Black Boxes
