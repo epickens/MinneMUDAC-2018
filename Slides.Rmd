@@ -43,6 +43,109 @@ library(caretEnsemble)
 
 ## Intro
 
+##Datums
+```{r}
+
+demo16 <- read_xls("data/ACS_1YR/ACS_16_1YR_BasicER.xls")
+demo14 <- read_xls("data/ACS_5YR/Basic/ACS_14_5YR_Ber.xls")
+demo12 <- read_xls("data/ACS_5YR/Basic/ACS_12_5YR_Ber.xls")
+demo10 <- read_xls("data/ACS_5YR/Basic/ACS_10_5YR_Ber.xls")
+demo08 <- read_xls("data/ACS_1YR/ACS_08_1YR_BasicER.xls")
+
+temp16 <- demo16 %>%
+  mutate(tot_votes = vote16$tot_votes)
+
+temp14 <- demo14 %>%
+  mutate(tot_votes = vote14$tot_votes)
+
+temp12 <- demo12 %>%
+  mutate(tot_votes = vote12$tot_votes)
+
+temp10 <- demo10 %>%
+  mutate(tot_votes = vote10$tot_votes)
+
+temp08 <- demo08 %>%
+  mutate(tot_votes = vote08$tot_votes)
+
+temp <- bind_rows(temp16, temp14, temp12, temp10, temp08)
+
+temp <- temp %>% rename(Tot_Pop = `Total population`) 
+  
+temp$Tot_Pop <- as.numeric(gsub(",","",temp$Tot_Pop))
+
+vars <- names(temp)[3:38]
+temp <- temp %>% mutate_each(funs(as.numeric(gsub("%", "", ., fixed = TRUE))/100), vars)
+
+temp <- temp %>%
+  mutate(over18 = EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus)
+
+temp1 <- temp %>% 
+  mutate(ruff_turnout = tot_votes / (Tot_Pop * over18)) 
+
+gen_elec_08_16 <- temp1 %>%
+  dplyr::select(-Tot_Pop, -tot_votes)
+
+sum(is.na(gen_elec_08_16))
+
+#remove the sole na 
+
+#I am choosing to replace the sole missing value that is already close to 0
+#with the 2014 value from the same district
+#assuming the the percentage of native people has not changed greatly
+#the new value is 0.003 (basically NN -- nearest neighbor method)
+
+gen_elec_08_16 <- gen_elec_08_16 %>%
+  replace_na(list(American_Indian_and_Alaska_Native = 0.003))
+
+#remove names
+
+gen_elec_no_names <- gen_elec_08_16 %>%
+  dplyr::select(-Subject)
+
+demo17_b <- read_xls("data/ACS_1YR/ACS_17_1YR_BasicER.xls")
+
+demo17_b <- demo17_b %>% rename(Tot_Pop = `Total population`) 
+  
+demo17_b$Tot_Pop <- as.numeric(gsub(",","",demo17_b$Tot_Pop))
+
+vars <- names(demo17_b)[3:38]
+demo17_b <- demo17_b %>% mutate_each(funs(as.numeric(gsub("%", "", ., fixed = TRUE))/100), vars)
+
+demo17_b <- demo17_b %>%
+  mutate(over18 = EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus)
+
+test17 <- demo17_b %>%
+  dplyr::select(-Tot_Pop)
+
+#remove names
+
+test17 <- test17 %>%
+  dplyr::select(-Subject)
+
+#fill in NA values
+
+####Will go back and re-Preprocess everything correctly in a minute
+
+####For now I'm going to be lazy
+####ANNNDDDDD.....
+
+test17 <- test17 %>%
+  replace_na(list(American_Indian_and_Alaska_Native = 0.000))
+
+set.seed(100)
+
+trainRowNums <- createDataPartition(gen_elec_no_names$over18, p = 0.8, list = FALSE)
+
+trainingData <- gen_elec_no_names[trainRowNums,]
+
+testingData <- gen_elec_no_names[-trainRowNums,]
+
+#Store extra data for later use
+x = trainingData[, 1:37]
+y = trainingData$ruff_turnout
+
+
+```
 
 
 ## Data Carpentry
@@ -61,6 +164,23 @@ summary(cars)
 
 ```{r pressure}
 plot(pressure)
+```
+
+
+## Regsubsets
+
+```{r}
+bestFit = (regsubsets(ruff_turnout~., data = trainingData))
+bestFitSummary = summary(bestFit)
+data_frame(Cp = bestFitSummary$cp,
+           BIC = bestFitSummary$bic,
+           AdjR2 = bestFitSummary$adjr2) %>%
+    mutate(id = row_number()) %>%
+    gather(value_type, value, -id) %>%
+    ggplot(aes(id, value, col = value_type)) +
+    geom_line() + geom_point() + ylab('') + xlab('Number of Variables Used') +
+    facet_wrap(~ value_type, scales = 'free') + 
+    scale_x_continuous(breaks = 1:10)
 ```
 
 ##Black Boxes
