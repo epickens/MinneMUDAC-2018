@@ -401,7 +401,7 @@ bwplot(models_compare, scales=scales)
 
 ```{r}
 set.seed(100)
-algos <- c('rf', 'earth', 'svmRadial')
+algos <- c('rf', 'earth', 'svmRadial', 'xgbDART')
 
 ensemble <- caretEnsemble::caretList(ruff_turnout ~ ., data=trainingData, methodList=algos) 
 results <- resamples(ensemble)
