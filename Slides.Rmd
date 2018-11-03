@@ -578,11 +578,13 @@ ggplot(resultsTable, aes(x)) +
 ```
 
 
+##Potential Future Models (Quantile Regression Neural Network)
 
-```{r}
-#model_QRNN = train(ruff_turnout ~ ., data=trainingDataMinusDR, method='qrnn')
-#plot(model_QRNN)
-```
+![](/home/elliot/MinneMUDAC-2018/nn0.png)
+
+##Results
+
+![](/home/elliot/MinneMUDAC-2018/nn.png)
 
 
 
