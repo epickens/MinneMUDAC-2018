@@ -38,13 +38,6 @@ library(skimr)
 library(lattice)
 library(RANN)
 library(caretEnsemble)
-```
-
-
-## Intro
-
-##Datums
-```{r}
 elec16 <- read_xlsx("data/dist_elec_stats/2016-general-federal-state-results-by-precinct-official-1.xlsx")
 elec14 <- read_xlsx("data/dist_elec_stats/2014-general-federal-state-results-by-precinct-official.xlsx")
 elec12 <- read_xlsx("data/dist_elec_stats/2012mngeneralelectionresults_official_postrecounts.xlsx")
@@ -190,28 +183,17 @@ y = trainingData$ruff_turnout
 ```
 
 
+## Intro
+
 ## Data Carpentry
 
 - Bullet 1
 - Bullet 2
 - Bullet 3
 
-## Feature Exploration
-
-```{r cars, echo = TRUE}
-summary(cars)
-```
-
-## Regression Modelling
-
-```{r pressure}
-plot(pressure)
-```
-
-
 ## Regsubsets
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 bestFit = (regsubsets(ruff_turnout~., data = trainingData))
 bestFitSummary = summary(bestFit)
 data_frame(Cp = bestFitSummary$cp,
@@ -224,6 +206,12 @@ data_frame(Cp = bestFitSummary$cp,
     facet_wrap(~ value_type, scales = 'free') + 
     scale_x_continuous(breaks = 1:10)
 ```
+
+##Regsubsets (cont.)
+
+* $C_p$ and BIC rates are various error terms used to analyze subset model selection
+* Looking to maximize the adjusted R-squared value, and minimize the other two error rates
+* Optimal variable selection: 3-5 variables
 
 ##Black Boxes
 
