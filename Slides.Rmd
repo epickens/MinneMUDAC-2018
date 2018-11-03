@@ -6,7 +6,7 @@ output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
@@ -47,7 +47,7 @@ library(caretEnsemble)
 ``` 
 
 ##Datums
-```{r}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 elec16 <- read_xlsx("data/dist_elec_stats/2016-general-federal-state-results-by-precinct-official-1.xlsx")
 elec14 <- read_xlsx("data/dist_elec_stats/2014-general-federal-state-results-by-precinct-official.xlsx")
 elec12 <- read_xlsx("data/dist_elec_stats/2012mngeneralelectionresults_official_postrecounts.xlsx")
@@ -190,6 +190,11 @@ x = trainingData[, 1:37]
 y = trainingData$ruff_turnout
 
 
+```
+
+```{r, echo=FALSE}
+skimmed <- skim_to_wide(gen_elec_no_names)
+skimmed$hist
 ```
 
 
