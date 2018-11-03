@@ -378,3 +378,53 @@ plot(newFit$residuals)
 
 ##Black Boxes
 
+```{r}
+set.seed(100)
+
+# Train the model using MARS
+model_svmRadial = train(ruff_turnout ~ ., data=trainingData, method='svmRadial', tuneLength=15)
+
+model_xgbDART = train(ruff_turnout ~ ., data=trainingData, method='xgbDART', tuneLength=5, verbose=F)
+
+model_rf = train(ruff_turnout ~ ., data=trainingData, method='rf')
+
+model_mars = train(ruff_turnout ~ ., data=trainingData, method='earth')
+
+models_compare <- resamples(list(RF=model_rf, MARS=model_mars, SVM=model_svmRadial, xgbDART=model_xgbDART))
+
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+bwplot(models_compare, scales=scales)
+```
+
+
+##Ensembles 
+
+```{r}
+set.seed(100)
+algos <- c('rf', 'earth', 'svmRadial')
+
+ensemble <- caretEnsemble::caretList(ruff_turnout ~ ., data=trainingData, methodList=algos) 
+results <- resamples(ensemble)
+
+#MSE
+mean((testingData$ruff_turnout - stack_pred) ^ 2)
+
+resid <- (testingData$ruff_turnout - stack_pred)
+resid <- data.frame(resid, seq(1:7))
+resid %>%
+  gf_point(resid ~ seq.1.7.) %>%
+  gf_hline(yintercept = 0)
+
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+bwplot(results, scales=scales)
+```
+
+
+##Quantile Regression Neural Network
+
+```{r}
+model_QRNN = train(ruff_turnout ~ ., data=trainingData, method='qrnn')
+plot(model_QRNN)
+```
+
+
