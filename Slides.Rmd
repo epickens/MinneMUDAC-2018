@@ -1,0 +1,7 @@
+---
+title: "Slides"
+author: "Elliot Pickens"
+date: "November 2, 2018"
+output: html_document
+---
+

@@ -5,6 +5,8 @@ date: "October 10, 2018"
 output: pdf_document
 ---
 
+#### Note: This guide has been an amazing help https://topepo.github.io/caret/recursive-feature-elimination.html#recursive-feature-elimination-via-caret
+
 #### Load some libraries
 
 * You may need to install some of the libraries below. To install package `tidyverse`, for example, run `install.packages("tidyverse")` in the console
@@ -338,16 +340,23 @@ head(testingData$ruff_turnout)
 pred <- predict(model_mars, testingData)
 head(pred)
 
-confusionMatrix(reference = as.factor(testingData$ruff_turnout), data = as.factor(as.vector(pred)), mode='everything', positive='MM')
-something = as.factor(testingData$ruff_turnout)
-something2 = as.factor(as.vector(pred))
-test.df <- as.data.frame(testingData)
-pred.df <- as.data.frame(pred)
-test_temp <- testingData$ruff_turnout
+###This somehow works
 
-identical(levels(test.df$ruff_turnout), levels(pred.df))
+pridicted <- factor(predict(model_mars, testingData))
+real <- factor(testingData$ruff_turnout)
 
-confusionMatrix(reference = test.df$ruff_turnout, data = pred.df, mode='everything', positive='MM')
+data1 <- data.frame(data = pridicted, type = "prediction")
+data2 <- data.frame(data = real, type = "real")
+data3 <- rbind(data1,data2)
+
+# Check if the levels are identical
+identical(levels(data3[data3$type == "prediction",1]) , levels(data3[data3$type == "real",1]))
+
+confusionMatrix(data3[data3$type == "prediction",1], data3[data3$type == "real",1],  dnn = c("Prediction", "Reference"))
+
+###^^^ somehow
+
+#But it doesn't really tell us much so I'm not going to use it  
 ```
 
 ####Okay so that is not working properly so I'm going to move on and come back to it
@@ -388,6 +397,9 @@ model_rf = train(ruff_turnout ~ ., data=trainingData, method='rf')
 model_rf
 plot(model_rf)
 summary(model_rf)
+
+
+
 ```
 
 ####Now xgBoost Dart
@@ -410,6 +422,7 @@ set.seed(100)
 # Train the model using MARS
 model_svmRadial = train(ruff_turnout ~ ., data=trainingData, method='svmRadial', tuneLength=15)
 model_svmRadial
+
 ```
 
 ####Let's compare and see how they fair
@@ -431,6 +444,12 @@ bwplot(models_compare, scales=scales)
 ####Why not run them all at once --- Ensemble Time ---
 
 ```{r}
+#ensembleControl <- trainControl(method="repeatedcv", 
+#                             number=10, 
+#                             repeats=3,
+#                             savePredictions=TRUE, 
+#                             classProbs=TRUE)
+
 algos <- c('rf', 'earth', 'svmRadial')
 
 set.seed(100)
@@ -440,6 +459,8 @@ summary(results)
 
 scales <- list(x=list(relation="free"), y=list(relation="free"))
 bwplot(results, scales=scales)
+
+
 ```
 
 ####TIME TO STACK THEM ALL TOGETHER
@@ -447,7 +468,13 @@ bwplot(results, scales=scales)
 ```{r}
 set.seed(100)
 
-stack <- caretEnsemble::caretStack(ensemble, methods = "glm", metric = "accuracy")
+#stackControl <- trainControl(method="repeatedcv", 
+#                             number=10, 
+#                             repeats=3,
+#                             savePredictions=TRUE, 
+#                             classProbs=TRUE)
+
+stack <- caretEnsemble::caretStack(ensemble, methods = "glm")
 
 print(stack)
 
@@ -471,6 +498,8 @@ table(stack_pred, testingData$ruff_turnout)
 #confusionMatrix(testingData$ruff_turnout, stack_pred)
 
 test17_pred <- predict(stack, test17)
+
+plot(stack)
 ```
 
 
