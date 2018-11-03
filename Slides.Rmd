@@ -55,8 +55,9 @@ gen_turnout %>%
 ## Turnout by District from 2008-2016
 
 ```{r}
-
 graph_data <- read_xlsx("data/test_data.xlsx")
+
+
 
 cg1 <- graph_data %>%
   filter(Subject == "CG1")
@@ -75,32 +76,69 @@ cg7 <- graph_data %>%
 cg8 <- graph_data %>%
   filter(Subject == "CG8")
 
-#par()
+
 
 #Using rough turnout
 
-par(mfrow=c(2,2))
 
-cg1 %>%
+a = cg1 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG1", ylab = "Estimate of Turnout Percentage")
-cg2 %>%
+b = cg2 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG2", ylab = "Estimate of Turnout Percentage")
-cg3 %>%
+d = cg3 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG3", ylab = "Estimate of Turnout Percentage")
-cg4 %>%
+c = cg4 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG4", ylab = "Estimate of Turnout Percentage")
-cg5 %>%
+e = cg5 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG5", ylab = "Estimate of Turnout Percentage")
-cg6 %>%
+f = cg6 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG6", ylab = "Estimate of Turnout Percentage")
-cg7 %>%
+g = cg7 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG7", ylab = "Estimate of Turnout Percentage")
-cg8 %>%
+h = cg8 %>%
   gf_point(ruff_turnout ~ Year, title = "Turnout Estimate CG8", ylab = "Estimate of Turnout Percentage")
 
+a1 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg1) +
+  labs(title = "Turnout Estimate: Cong. District 1", y = "Estimate of Turnout Percentage")
+
+a2 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg2) +
+  labs(title = "Turnout Estimate: Cong. District 2", y = "")
+  
+a3 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg3) +
+  labs(title = "Turnout Estimate: Cong. District 3", y = "Estimate of Turnout Percentage")
+
+a4 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg4) +
+  labs(title = "Turnout Estimate: Cong. District 4", y = "")
+
+a5 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg5) +
+  labs(title = "Turnout Estimate: Cong. District 5", y = "Estimate of Turnout Percentage")
+
+a6 = 
+  ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg6) +
+  labs(title = "Turnout Estimate: Cong. District 6", y = "")
+
+a7 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg7) +
+  labs(title = "Turnout Estimate: Cong. District 7", y = "Estimate of Turnout Percentage")
+
+a8 = ggplot() + 
+  geom_point(aes(x = Year, y = ruff_turnout), data = cg8) +
+  labs(title = "Turnout Estimate: Cong. District 8", y = "")
+
+grid.arrange(a1, a2, a3, a4)
 
 ```
 
+##Turnout by District from 2008-2016
+```{r}
+grid.arrange(a5, a6, a7, a8)
+```
 
 ##Datums
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
@@ -263,7 +301,7 @@ skimmed$hist
 
 - Election results sourced from the Office of the Minnesota Secretary of State.
 
-## Regsubsets
+## Regsubsets: Visualization
 
 ```{r, warning=FALSE, message=FALSE}
 bestFit = (regsubsets(ruff_turnout~., data = trainingData))
@@ -276,14 +314,27 @@ data_frame(Cp = bestFitSummary$cp,
     ggplot(aes(id, value, col = value_type)) +
     geom_line() + geom_point() + ylab('') + xlab('Number of Variables Used') +
     facet_wrap(~ value_type, scales = 'free') + 
-    scale_x_continuous(breaks = 1:10)
+    scale_x_continuous(breaks = 1:10) +
+    ggtitle("Error Rates and Fit Values for Various Regressions")
 ```
 
-##Regsubsets (cont.)
+##Regsubsets: Explained
 
 * $C_p$ and BIC rates are various error terms used to analyze subset model selection
 * Looking to maximize the adjusted R-squared value, and minimize the other two error rates
 * Optimal variable selection: 3-5 variables
+
+##Regsubsets: BIC Plot
+
+```{r}
+plot(bestFit, ylab = "BIC Values", main = "BIC Optimizaion")
+```
+
+##Regsubsets: Predictor Selection
+```{r}
+fourPredictors = as.tibble(bestFitSummary$outmat[4, ]) %>%
+  as.data.frame()
+```
 
 ##Regression Analysis
 
@@ -293,7 +344,7 @@ newFit = glm(ruff_turnout~Under5 + FiveTo17 +
              data = trainingData)
 ```
 
-* Our model can be depicted as: 
+- Our model can be depicted as: 
 
 $$Y = -0.92 + 10.13X_1 - 3.39X_2 + 9.32X_3 + 2.28X_4$$
 
