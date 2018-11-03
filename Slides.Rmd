@@ -10,7 +10,6 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-
 library(aod)
 library(boot)
 library(broom)
@@ -39,6 +38,7 @@ library(tidyr)
 library(tidyselect)
 library(tidyverse)
 library(tseries)
+library(qrnn)
 ```
 
 
@@ -54,7 +54,7 @@ gen_turnout %>%
 
 ## Turnout by District from 2008-2016
 
-```{r}
+```{r, results='hide'}
 graph_data <- read_xlsx("data/test_data.xlsx")
 
 
@@ -140,50 +140,52 @@ grid.arrange(a1, a2, a3, a4)
 grid.arrange(a5, a6, a7, a8)
 ```
 
-##Datums
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
-
+elec18 <- read_xls("data/dist_elec_stats/2018_primary.xls")
 elec16 <- read_xlsx("data/dist_elec_stats/2016-general-federal-state-results-by-precinct-official-1.xlsx")
 elec14 <- read_xlsx("data/dist_elec_stats/2014-general-federal-state-results-by-precinct-official.xlsx")
 elec12 <- read_xlsx("data/dist_elec_stats/2012mngeneralelectionresults_official_postrecounts.xlsx")
 elec10 <- read_xls("data/dist_elec_stats/2010_general_results_final.xls")
 elec08 <- read_xls("data/dist_elec_stats/2008_general_results.xls")
 
+vote18 <- elec18 %>%
+  group_by(CONGDIST)
+
 vote16 <- elec16 %>%
   group_by(CONGDIST) %>%
-  summarise(tot_votes = sum(TOTVOTING))
+  summarise(tot_votes = sum(TOTVOTING), repub = sum(USREPR), dem = sum(USREPDFL))
 
 vote16 <- vote16 %>%
-  dplyr::select(tot_votes) %>%
+  dplyr::select(tot_votes, repub, dem) %>%
   filter(tot_votes < 1000000)
 
 vote14 <- elec14 %>%
   group_by(CONGDIST) %>%
-  summarise(tot_votes = sum(TOTVOTING)) %>%
-  dplyr::select(tot_votes)
+  summarise(tot_votes = sum(TOTVOTING), repub = sum(USREPR), dem = sum(USREPDFL)) %>%
+  dplyr::select(tot_votes, repub, dem)
 
 vote12 <- elec12 %>%
   group_by(CONGDIST) %>%
-  summarise(tot_votes = sum(TOTVOTING))
+  summarise(tot_votes = sum(TOTVOTING), repub = sum(USREPR), dem = sum(USREPDFL))
 
 vote12 <- vote12 %>%
-  dplyr::select(tot_votes) %>%
+  dplyr::select(tot_votes, repub, dem) %>%
   filter(tot_votes < 1000000)
 
 vote10 <- elec10 %>%
   group_by(CG) %>%
-  summarise(tot_votes = sum(TotVoters))
+  summarise(tot_votes = sum(TotVoters), repub = sum(CONGR), dem = sum(CONGDFL))
 
 vote10 <- vote10 %>%
-  dplyr::select(tot_votes) %>%
+  dplyr::select(tot_votes, repub, dem) %>%
   filter(tot_votes < 1000000)
 
 vote08 <- elec08 %>%
   group_by(CG) %>%
-  summarise(tot_votes = sum(TotVoters))
+  summarise(tot_votes = sum(TotVoters), repub = sum(CONGR), dem = sum(CONGDFL))
 
 vote08 <- vote08 %>%
-  dplyr::select(tot_votes) %>%
+  dplyr::select(tot_votes, repub, dem) %>%
   filter(tot_votes < 1000000)
 
 demo16 <- read_xls("data/ACS_1YR/ACS_16_1YR_BasicER.xls")
@@ -193,19 +195,19 @@ demo10 <- read_xls("data/ACS_5YR/Basic/ACS_10_5YR_Ber.xls")
 demo08 <- read_xls("data/ACS_1YR/ACS_08_1YR_BasicER.xls")
 
 temp16 <- demo16 %>%
-  mutate(tot_votes = vote16$tot_votes)
+  mutate(tot_votes = vote16$tot_votes, r_votes = vote16$repub, d_votes = vote16$dem, Elec_Type_Gen = 1, Elec_Type_Mid = 0)
 
 temp14 <- demo14 %>%
-  mutate(tot_votes = vote14$tot_votes)
+  mutate(tot_votes = vote14$tot_votes, r_votes = vote14$repub, d_votes = vote14$dem, Elec_Type_Gen = 0, Elec_Type_Mid = 1)
 
 temp12 <- demo12 %>%
-  mutate(tot_votes = vote12$tot_votes)
+  mutate(tot_votes = vote12$tot_votes, r_votes = vote12$repub, d_votes = vote12$dem, Elec_Type_Gen = 1, Elec_Type_Mid = 0)
 
 temp10 <- demo10 %>%
-  mutate(tot_votes = vote10$tot_votes)
+  mutate(tot_votes = vote10$tot_votes, r_votes = vote10$repub, d_votes = vote10$dem, Elec_Type_Gen = 0, Elec_Type_Mid = 1)
 
 temp08 <- demo08 %>%
-  mutate(tot_votes = vote08$tot_votes)
+  mutate(tot_votes = vote08$tot_votes, r_votes = vote08$repub, d_votes = vote08$dem, Elec_Type_Gen = 1, Elec_Type_Mid = 0)
 
 temp <- bind_rows(temp16, temp14, temp12, temp10, temp08)
 
@@ -220,13 +222,12 @@ temp <- temp %>%
   mutate(over18 = EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus)
 
 temp1 <- temp %>% 
-  mutate(ruff_turnout = tot_votes / (Tot_Pop * over18)) 
+  mutate(ruff_turnout = tot_votes / (Tot_Pop * over18), repub = r_votes / tot_votes, dem = d_votes / tot_votes) 
 
 gen_elec_08_16 <- temp1 %>%
-  dplyr::select(-Tot_Pop, -tot_votes)
+  dplyr::select(-Tot_Pop, -tot_votes, -r_votes, -d_votes)
 
 sum(is.na(gen_elec_08_16))
-
 #remove the sole na 
 
 #I am choosing to replace the sole missing value that is already close to 0
@@ -287,24 +288,28 @@ y = trainingData$ruff_turnout
 
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, results='hide'}
 skimmed <- skim_to_wide(gen_elec_no_names)
 skimmed$hist
 ```
 
+## Sources of Data
 
-## Intro
-
-## Data Carpentry
-
-- Demographic data sourced from the ACS (American Community Survey).
+- Demographic data was sourced from the ACS (American Community Survey).
 
 - Election results sourced from the Office of the Minnesota Secretary of State.
+
+## Sample of Data
+
+```{r}
+head(dplyr::select(trainingData, Female, Under5, Asian, TenK_14999, Elec_Type_Gen, ruff_turnout, dem))
+```
 
 ## Regsubsets: Visualization
 
 ```{r, warning=FALSE, message=FALSE}
-bestFit = (regsubsets(ruff_turnout~., data = trainingData))
+trainingDataMinusDR = dplyr::select(trainingData, -repub, -dem)
+bestFit = (regsubsets(ruff_turnout~., data = trainingDataMinusDR))
 bestFitSummary = summary(bestFit)
 data_frame(Cp = bestFitSummary$cp,
            BIC = bestFitSummary$bic,
@@ -341,26 +346,69 @@ fourPredictors
 ##Regression Analysis
 
 ```{r, echo=TRUE}
-newFit = glm(ruff_turnout~Under5 + FiveTo17 + 
-             FortyFiveTo54 + One_9999_loss,
-             data = trainingData)
+newFit = glm(ruff_turnout~FortyFiveTo54 + Divorced_separated + 
+             Elec_Type_Gen + over18,
+             data = trainingDataMinusDR)
 ```
 
-- Our model can be depicted as: 
+```{r}
+coef = round(newFit$coefficients, digits=2)
+```
 
-$$Y = -0.92 + 10.13X_1 - 3.39X_2 + 9.32X_3 + 2.28X_4$$
+- Our model can be depicted as
+
+$$Y = 0.7 + 1.71X_1 + 1.07X_2 + 0.22X_3 - 0.74X_4$$
 
 Where:
 
 - <font size = "4">$Y$ = Voter turnout</font>
-- <font size = "4">$X_1$ = Percentage of district population under the age of five</font>
-- <font size = "4">$X_2$ = Percentage of district population within the ages of five to seventeen</font>
-- <font size = "4">$X_3$ = Percentage of district population within the ages of forty-five to fifty-four</font>
-- <font size = "4">$X_4$ = Percentage of distrcit population with an annual income of $20,000</font>
+- <font size = "4">$X_1$ = Percentage of district population within the ages of forty-five to fifty-four</font>
+- <font size = "4">$X_2$ = Percentage of district population that are divorced and/or separated</font>
+- <font size = "4">$X_3$ = $1$ if election is general, $0$ if midterm</font>
+- <font size = "4">$X_4$ = Percentage of distrcit population over the age of 18</font>
 
 ```{r}
 delta = cv.glm(trainingData, newFit)$delta[1]
 mseReg = mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
+```
+
+##Regression: Predictions - Test Dataset
+
+```{r}
+head(dplyr::select(testingData, FortyFiveTo54, Divorced_separated, Elec_Type_Gen, over18, ruff_turnout))
+```
+
+##Regression: Predictions - Results
+
+```{r}
+xvector = c("RE1", "RE2", "RE3", "RE4", "RE5", "RE6", "RE7")
+predVector = predict.glm(newFit, testingData)
+resultsTable = tibble(x = xvector, y = testingData$ruff_turnout, z = predVector)
+ggplot(resultsTable, aes(x)) +
+  geom_point(aes(y = y, colour = "Test Data")) + 
+  geom_point(aes(y = z, colour = "Model Predictions")) +
+  labs(title = "Test Turnout vs. Predicted Turnout", x = "Random Election", y = "Turnout Fraction")
+
+```
+
+##Regression: Industry
+```{r, echo=FALSE}
+acs14 = read_csv("data/ACS_1YR/ACS_14_1YR_S0501/ACS_14_1YR_S0501_with_ann.csv", skip = 1) %>%
+  dplyr::select(contains("Total; Estimate")) %>%
+  dplyr::select(contains("INDUSTRY")) %>%
+  slice(-1)
+
+acsTemp14 = dplyr::select(temp14, 2, 7:12, 39:43) %>%
+  slice(3:5)
+
+acs14 = acs14 %>%
+  bind_cols(acsTemp14)
+
+acs14 = lapply(acs14, function (x) gsub("%", "", x)) %>%
+  lapply(function (x) gsub(",", "", x)) %>%
+  lapply(function (x) as.numeric(x)) %>%
+  as.tibble() %>%
+  mutate(votingPop = `Total population`*(EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus), ruff_turnout = tot_votes/votingPop)
 ```
 
 #BIC
@@ -374,7 +422,7 @@ newFit.step <- stepAIC(newFit, scope = list(lower = ~ 1, upper = ~ .), direction
 mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
 #You might want to change the labels on this
 plot(newFit$residuals)
-```
+
 
 ##Black Boxes
 
@@ -382,15 +430,15 @@ plot(newFit$residuals)
 set.seed(100)
 
 # Train the model using MARS
-model_svmRadial = train(ruff_turnout ~ ., data=trainingData, method='svmRadial', tuneLength=15)
+model_svmRadial = train(ruff_turnout ~ ., data=trainingDataMinusDR, method='svmRadial', tuneLength=15)
 
-model_xgbDART = train(ruff_turnout ~ ., data=trainingData, method='xgbDART', tuneLength=5, verbose=F)
+#model_xgbDART = train(ruff_turnout ~ ., data=trainingData, method='xgbDART', tuneLength=5, verbose=F)
 
-model_rf = train(ruff_turnout ~ ., data=trainingData, method='rf')
+model_rf = train(ruff_turnout ~ ., data=trainingDataMinusDR, method='rf')
 
-model_mars = train(ruff_turnout ~ ., data=trainingData, method='earth')
+model_mars = train(ruff_turnout ~ ., data=trainingDataMinusDR, method='earth')
 
-models_compare <- resamples(list(RF=model_rf, MARS=model_mars, SVM=model_svmRadial, xgbDART=model_xgbDART))
+models_compare <- resamples(list(RF=model_rf, MARS=model_mars, SVM=model_svmRadial)) #xgbDART=model_xgbDART))
 
 scales <- list(x=list(relation="free"), y=list(relation="free"))
 bwplot(models_compare, scales=scales)
@@ -400,31 +448,40 @@ bwplot(models_compare, scales=scales)
 ##Ensembles 
 
 ```{r}
-set.seed(100)
-algos <- c('rf', 'earth', 'svmRadial', 'xgbDART')
-
-ensemble <- caretEnsemble::caretList(ruff_turnout ~ ., data=trainingData, methodList=algos) 
-results <- resamples(ensemble)
-
-#MSE
-mean((testingData$ruff_turnout - stack_pred) ^ 2)
-
-resid <- (testingData$ruff_turnout - stack_pred)
-resid <- data.frame(resid, seq(1:7))
-resid %>%
-  gf_point(resid ~ seq.1.7.) %>%
-  gf_hline(yintercept = 0)
-
-scales <- list(x=list(relation="free"), y=list(relation="free"))
-bwplot(results, scales=scales)
+# set.seed(100)
+# 
+# #stackControl <- trainControl(method="repeatedcv", 
+# #                             number=10, 
+# #                             repeats=3,
+# #                             savePredictions=TRUE, 
+# #                             classProbs=TRUE)
+# 
+# algos <- c('rf', 'earth', 'svmRadial', 'xgbDART')
+# 
+# ensemble <- caretEnsemble::caretList(ruff_turnout ~ ., data=trainingDataMinusDR, methodList=algos) 
+# results <- resamples(ensemble)
+# stack <- caretEnsemble::caretStack(ensemble, methods = "glm")
+# stack_pred <- predict(stack, testingData)
+# 
+# #MSE
+# mean((testingData$ruff_turnout - stack_pred) ^ 2)
+# 
+# resid <- (testingData$ruff_turnout - stack_pred)
+# resid <- data.frame(resid, seq(1:7))
+# resid %>%
+#   gf_point(resid ~ seq.1.7.) %>%
+#   gf_hline(yintercept = 0)
+# 
+# scales <- list(x=list(relation="free"), y=list(relation="free"))
+# bwplot(results, scales=scales)
 ```
 
 
 ##Quantile Regression Neural Network
 
 ```{r}
-model_QRNN = train(ruff_turnout ~ ., data=trainingData, method='qrnn')
-plot(model_QRNN)
+#model_QRNN = train(ruff_turnout ~ ., data=trainingDataMinusDR, method='qrnn')
+#plot(model_QRNN)
 ```
 
 
