@@ -468,6 +468,8 @@ confusionMatrix(stack_pred, testingData$ruff_turnout)
 
 table(stack_pred, testingData$ruff_turnout)
 
+#confusionMatrix(testingData$ruff_turnout, stack_pred)
+
 test17_pred <- predict(stack, test17)
 ```
 
@@ -511,7 +513,14 @@ $$BIC = \frac{1}{n}(RSS + log(n)d\sigma^2)$$
 rgAttempt = lm(ruff_turnout~Under5 + FortyFiveTo54 + TenK_14999, data = trainingData)
 summary(rgAttempt)
 predict.lm(rgAttempt, testingData)
+test17_reg_pred = predict.lm(rgAttempt, test17)
 mean((testingData$ruff_turnout - predict.lm(rgAttempt, testingData)) ^ 2)
+```
+
+```{r}
+newFit = lm(ruff_turnout~Under5 + FiveTo17 + FortyFiveTo54 + One_9999_loss, data = trainingData)
+mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
+plot(newFit$residuals)
 ```
 
 $$\text{Voter Turnout} = -1.19 + 10.60\text{% Population under age of 5} + 6.27\text{% Population ages 45-54} + 5.13*\text{(% Income Level:10,000 - 14,999)}$$
