@@ -334,6 +334,8 @@ plot(bestFit, ylab = "BIC Values", main = "BIC Optimizaion")
 ```{r}
 fourPredictors = as.tibble(bestFitSummary$outmat[4, ]) %>%
   as.data.frame()
+
+fourPredictors
 ```
 
 ##Regression Analysis

@@ -150,6 +150,45 @@
 
 </article></slide><slide class=""><hgroup><h2>Regsubsets: Predictor Selection</h2></hgroup><article  id="regsubsets-predictor-selection">
 
+<pre >##                                   value
+## Male                                   
+## Female                                 
+## Under5                                *
+## FiveTo17                              *
+## EighteenTo24                           
+## TwentyfiveTo44                         
+## FortyFiveTo54                         *
+## FiftyfiveTo64                          
+## SixtyfiveTo74                          
+## Seventyfive_plus                       
+## Median_age                             
+## White                                  
+## Black                                  
+## American_Indian_and_Alaska_Native      
+## Asian                                  
+## Some_other_race                        
+## Two_or_more_races                      
+## Hispanic                               
+## White_alone                            
+## Never_married                          
+## Now_married_not_separated              
+## Divorced_separated                     
+## Widowed                                
+## Less_than_high_school_graduate         
+## High_school_graduate                   
+## Some_college_or_associate_degree       
+## Bachelor_degree                        
+## Graduate_or_professional_degree        
+## One_9999_loss                         *
+## TenK_14999                             
+## FifteenK_24999                         
+## TwentyfiveK_34999                      
+## ThirtyfiveK_49999                      
+## FiftyK_74999                           
+## SeventyfiveK_plus                      
+## Below_poverty_level                    
+## over18</pre>
+
 </article></slide><slide class=""><hgroup><h2>Regression Analysis</h2></hgroup><article  id="regression-analysis">
 
 <pre class = 'prettyprint lang-r'>newFit = glm(ruff_turnout~Under5 + FiveTo17 + 
