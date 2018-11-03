@@ -539,7 +539,7 @@ set.seed(100)
 # Nueral Net: Quantile Regression Neural Network
 model_QRNN = train(ruff_turnout ~ ., data=trainingData, method='qrnn')
 model_QRNN
-
+plot(model_QRNN)
 ```
 
 
