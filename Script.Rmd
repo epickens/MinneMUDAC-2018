@@ -22,7 +22,7 @@ After cleaning up the data sets with the use of the ***tidyverse*** and some goo
 
 Sadly, getting a proper VEP (voting elegible population) estimate did not prove to be so easy (at the congressional district level) so we had to come up with a rough estimatation of it, and consequentially -- voter turnout.
 
-We got our estimate by taking the the total number of votes cast in each district and dividing it by the population over 18 in the district. As a result our turnout percentages are definetly a little low (given we don't subtract non-citizens or felons or anyone else for that matter from the over 18 population), but these estimates are consistently low so at least there's that.
+We got our estimate by taking the the total number of votes cast in each district and dividing it by the population over 18 in the district. As a result our turnout percentages are definitely a little low (given we don't subtract non-citizens or felons or anyone else for that matter from the over 18 population), but these estimates are consistently low so at least there's that.
 
 ####Part 2: Modelling -- The Beginnings
 
@@ -66,8 +66,8 @@ So we moved on to other more complex -- black box -- methods in search of better
 
 We initially took a look at using RF (random forest), MARS (multivariate regression splines), and SVM (support vector machine) methods to do this. With these methods we had some varied but promising results.
 
-So why not combine them?
+So why not combine them? 
 
-Well that's exactly what we did by creating an ensemble method from all of them. Basically we are compensating for having a not so great model by throwing additional computation at it. We've made an ensemble of methods to do just this, because by combining hypotheses (read: model) we can hopefully find form a better hypothesis.
+Well that's exactly what we did by creating an ensemble method from all of them. Basically we are compensating for having a not so great model by throwing additional computation at it. We've made an ensemble of methods to do just this, because by combining hypotheses (read: model) we can hopefully form a better hypothesis.
 
 
