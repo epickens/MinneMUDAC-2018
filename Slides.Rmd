@@ -135,7 +135,7 @@ grid.arrange(a1, a2, a3, a4)
 
 ```
 
-##Turnout by District from 2008-2016 (Cont.)
+##Turnout by District from 2008-2016
 ```{r}
 grid.arrange(a5, a6, a7, a8)
 ```
@@ -324,13 +324,16 @@ data_frame(Cp = bestFitSummary$cp,
 * Looking to maximize the adjusted R-squared value, and minimize the other two error rates
 * Optimal variable selection: 3-5 variables
 
+##Regsubsets: BIC Plot
+
+```{r}
+plot(bestFit, ylab = "BIC Values", main = "BIC Optimizaion")
+```
 
 ##Regsubsets: Predictor Selection
 ```{r}
 fourPredictors = as.tibble(bestFitSummary$outmat[4, ]) %>%
   as.data.frame()
-
-fourPredictors
 ```
 
 ##Regression Analysis
