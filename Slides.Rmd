@@ -232,11 +232,28 @@ data_frame(Cp = bestFitSummary$cp,
 
 ##Regression Analysis
 
-```{r}
+```{r, echo=TRUE}
+newFit = glm(ruff_turnout~Under5 + FiveTo17 + 
+             FortyFiveTo54 + One_9999_loss,
+             data = trainingData)
+```
 
-newFit = glm(ruff_turnout~Under5 + FiveTo17 + FortyFiveTo54 + One_9999_loss, data = trainingData)
+* Our model can be depicted as: 
+
+$$Y = -0.92 + 10.13X_1 - 3.39X_2 + 9.32X_3 + 2.28X_4$$
+
+Where:
+
+- <font size = "4">$Y$ = Voter turnout</font>
+- <font size = "4">$X_1$ = Percentage of district population under the age of five</font>
+- <font size = "4">$X_2$ = Percentage of district population within the ages of five to seventeen</font>
+- <font size = "4">$X_3$ = Percentage of district population within the ages of forty-five to fifty-four</font>
+- <font size = "4">$X_4$ = Percentage of distrcit population with an annual income of $20,000</font>
+
+```{r}
 delta = cv.glm(trainingData, newFit)$delta[1]
 mseReg = mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
+```
 
 #BIC
 newFit.step <- stepAIC(newFit, scope = list(lower = ~ 1, upper = ~ .), direction = "both", k = log(nrow(trainingData)))
