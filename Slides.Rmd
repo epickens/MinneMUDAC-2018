@@ -6,7 +6,7 @@ output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
@@ -39,6 +39,16 @@ library(tidyr)
 library(tidyselect)
 library(tidyverse)
 library(tseries)
+```
+
+
+## Intro
+
+```{r, echo=FALSE}
+``` 
+
+##Datums
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
 
 elec16 <- read_xlsx("data/dist_elec_stats/2016-general-federal-state-results-by-precinct-official-1.xlsx")
 elec14 <- read_xlsx("data/dist_elec_stats/2014-general-federal-state-results-by-precinct-official.xlsx")
@@ -184,6 +194,11 @@ y = trainingData$ruff_turnout
 
 ```
 
+```{r, echo=FALSE}
+skimmed <- skim_to_wide(gen_elec_no_names)
+skimmed$hist
+```
+
 
 ## Intro
 
@@ -218,9 +233,22 @@ data_frame(Cp = bestFitSummary$cp,
 ##Regression Analysis
 
 ```{r}
+
 newFit = glm(ruff_turnout~Under5 + FiveTo17 + FortyFiveTo54 + One_9999_loss, data = trainingData)
 delta = cv.glm(trainingData, newFit)$delta[1]
 mseReg = mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
+
+#BIC
+newFit.step <- stepAIC(newFit, scope = list(lower = ~ 1, upper = ~ .), direction = "both", k = log(nrow(trainingData)))
+
+#AIC
+newFit.step <- stepAIC(newFit, scope = list(lower = ~ 1, upper = ~ .), direction = "both", k = log(nrow(trainingData)))
+
+#Nothing Happens when it is run on the model you put in!!! So we should be good
+
+mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
+#You might want to change the labels on this
+plot(newFit$residuals)
 ```
 
 ##Black Boxes
