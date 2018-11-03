@@ -208,7 +208,7 @@ skimmed$hist
 
 - Election results sourced from the Office of the Minnesota Secretary of State.
 
-## Regsubsets
+## Regsubsets: Visualization
 
 ```{r, warning=FALSE, message=FALSE}
 bestFit = (regsubsets(ruff_turnout~., data = trainingData))
@@ -221,14 +221,24 @@ data_frame(Cp = bestFitSummary$cp,
     ggplot(aes(id, value, col = value_type)) +
     geom_line() + geom_point() + ylab('') + xlab('Number of Variables Used') +
     facet_wrap(~ value_type, scales = 'free') + 
-    scale_x_continuous(breaks = 1:10)
+    scale_x_continuous(breaks = 1:10) +
+    ggtitle("Error Rates and Fit Values for Various Regressions")
 ```
 
-##Regsubsets (cont.)
+##Regsubsets: Explained
 
 * $C_p$ and BIC rates are various error terms used to analyze subset model selection
 * Looking to maximize the adjusted R-squared value, and minimize the other two error rates
 * Optimal variable selection: 3-5 variables
+
+
+##Regsubsets: Predictor Selection
+```{r}
+fourPredictors = as.tibble(bestFitSummary$outmat[4, ]) %>%
+  as.data.frame()
+
+fourPredictors
+```
 
 ##Regression Analysis
 
@@ -238,7 +248,7 @@ newFit = glm(ruff_turnout~Under5 + FiveTo17 +
              data = trainingData)
 ```
 
-* Our model can be depicted as: 
+- Our model can be depicted as: 
 
 $$Y = -0.92 + 10.13X_1 - 3.39X_2 + 9.32X_3 + 2.28X_4$$
 
