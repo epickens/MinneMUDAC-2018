@@ -187,9 +187,9 @@ y = trainingData$ruff_turnout
 
 ## Data Carpentry
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+- Demographic data sourced from the ACS (American Community Survey).
+
+- Election results sourced from the Office of the Minnesota Secretary of State.
 
 ## Regsubsets
 
@@ -212,6 +212,14 @@ data_frame(Cp = bestFitSummary$cp,
 * $C_p$ and BIC rates are various error terms used to analyze subset model selection
 * Looking to maximize the adjusted R-squared value, and minimize the other two error rates
 * Optimal variable selection: 3-5 variables
+
+##Regression Analysis
+
+```{r}
+newFit = lm(ruff_turnout~Under5 + FiveTo17 + FortyFiveTo54 + One_9999_loss, data = trainingData)
+mean((testingData$ruff_turnout - predict.lm(newFit, testingData)) ^ 2)
+plot(newFit$residuals)
+```
 
 ##Black Boxes
 
