@@ -58,6 +58,7 @@ demo17 <- read_xls("data/ACS_1YR/ACS_17_1YR_S0601(1).xls", skip = 0)
 ####Load elections stats
 
 ```{r, echo=FALSE, warning=FALSE}
+elec18 <- read_xls("data/dist_elec_stats/2018_primary.xls")
 elec16 <- read_xlsx("data/dist_elec_stats/2016-general-federal-state-results-by-precinct-official-1.xlsx")
 elec14 <- read_xlsx("data/dist_elec_stats/2014-general-federal-state-results-by-precinct-official.xlsx")
 elec12 <- read_xlsx("data/dist_elec_stats/2012mngeneralelectionresults_official_postrecounts.xlsx")
@@ -68,41 +69,44 @@ elec08 <- read_xls("data/dist_elec_stats/2008_general_results.xls")
 ####Group Counts by Congressional District
 
 ```{r}
+vote18 <- elec18 %>%
+  group_by(CONGDIST)
+
 vote16 <- elec16 %>%
   group_by(CONGDIST) %>%
-  summarise(tot_votes = sum(TOTVOTING))
+  summarise(tot_votes = sum(TOTVOTING), repub = sum(USREPR), dem = sum(USREPDFL))
 
 vote16 <- vote16 %>%
-  dplyr::select(tot_votes) %>%
+  dplyr::select(tot_votes, repub, dem) %>%
   filter(tot_votes < 1000000)
 
 vote14 <- elec14 %>%
   group_by(CONGDIST) %>%
-  summarise(tot_votes = sum(TOTVOTING)) %>%
-  dplyr::select(tot_votes)
+  summarise(tot_votes = sum(TOTVOTING), repub = sum(USREPR), dem = sum(USREPDFL)) %>%
+  dplyr::select(tot_votes, repub, dem)
 
 vote12 <- elec12 %>%
   group_by(CONGDIST) %>%
-  summarise(tot_votes = sum(TOTVOTING))
+  summarise(tot_votes = sum(TOTVOTING), repub = sum(USREPR), dem = sum(USREPDFL))
 
 vote12 <- vote12 %>%
-  dplyr::select(tot_votes) %>%
+  dplyr::select(tot_votes, repub, dem) %>%
   filter(tot_votes < 1000000)
 
 vote10 <- elec10 %>%
   group_by(CG) %>%
-  summarise(tot_votes = sum(TotVoters))
+  summarise(tot_votes = sum(TotVoters), repub = sum(CONGR), dem = sum(CONGDFL))
 
 vote10 <- vote10 %>%
-  dplyr::select(tot_votes) %>%
+  dplyr::select(tot_votes, repub, dem) %>%
   filter(tot_votes < 1000000)
 
 vote08 <- elec08 %>%
   group_by(CG) %>%
-  summarise(tot_votes = sum(TotVoters))
+  summarise(tot_votes = sum(TotVoters), repub = sum(CONGR), dem = sum(CONGDFL))
 
 vote08 <- vote08 %>%
-  dplyr::select(tot_votes) %>%
+  dplyr::select(tot_votes, repub, dem) %>%
   filter(tot_votes < 1000000)
 ```
 
@@ -120,19 +124,19 @@ demo08 <- read_xls("data/ACS_1YR/ACS_08_1YR_BasicER.xls")
 
 ```{r}
 temp16 <- demo16 %>%
-  mutate(tot_votes = vote16$tot_votes)
+  mutate(tot_votes = vote16$tot_votes, r_votes = vote16$repub, d_votes = vote16$dem, Elec_Type_Gen = 1, Elec_Type_Mid = 0)
 
 temp14 <- demo14 %>%
-  mutate(tot_votes = vote14$tot_votes)
+  mutate(tot_votes = vote14$tot_votes, r_votes = vote14$repub, d_votes = vote14$dem, Elec_Type_Gen = 0, Elec_Type_Mid = 1)
 
 temp12 <- demo12 %>%
-  mutate(tot_votes = vote12$tot_votes)
+  mutate(tot_votes = vote12$tot_votes, r_votes = vote12$repub, d_votes = vote12$dem, Elec_Type_Gen = 1, Elec_Type_Mid = 0)
 
 temp10 <- demo10 %>%
-  mutate(tot_votes = vote10$tot_votes)
+  mutate(tot_votes = vote10$tot_votes, r_votes = vote10$repub, d_votes = vote10$dem, Elec_Type_Gen = 0, Elec_Type_Mid = 1)
 
 temp08 <- demo08 %>%
-  mutate(tot_votes = vote08$tot_votes)
+  mutate(tot_votes = vote08$tot_votes, r_votes = vote08$repub, d_votes = vote08$dem, Elec_Type_Gen = 1, Elec_Type_Mid = 0)
 ```
 
 ####Let's Combine all of the Temp Tables and get a basic turnout %
@@ -151,7 +155,7 @@ temp <- temp %>%
   mutate(over18 = EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus)
 
 temp1 <- temp %>% 
-  mutate(ruff_turnout = tot_votes / (Tot_Pop * over18)) 
+  mutate(ruff_turnout = tot_votes / (Tot_Pop * over18), repub = r_votes / tot_votes, dem = d_votes / tot_votes) 
 
 #Not sure if I should try to convert percentages
 #May or may not come back to this later
@@ -161,7 +165,7 @@ temp1 <- temp %>%
 
 ```{r}
 gen_elec_08_16 <- temp1 %>%
-  dplyr::select(-Tot_Pop, -tot_votes)
+  dplyr::select(-Tot_Pop, -tot_votes, -r_votes, -d_votes)
 
 sum(is.na(gen_elec_08_16))
 
@@ -175,10 +179,22 @@ sum(is.na(gen_elec_08_16))
 gen_elec_08_16 <- gen_elec_08_16 %>%
   replace_na(list(American_Indian_and_Alaska_Native = 0.003))
 
+
+
 #remove names
 
 gen_elec_no_names <- gen_elec_08_16 %>%
   dplyr::select(-Subject)
+
+#preProcess <- preProcess(gen_elec_no_names, method='knnImpute')
+#preProcess
+#gen_elec_no_names <- predict(preProcess, newdata = gen_elec_no_names)
+
+#One Hot Encoding
+
+#dummy_model <- dummyVars(ruff_turnout ~ ., data = gen_elec_no_names)
+#trainTemp <- predict(dummy_model, newdata = gen_elec_no_names)
+#gen_elec_no_names <- data.frame(trainTemp)
 ```
 
 ####Let's create a seperate data set that can be used for testing (where we don't have turnout)
@@ -196,13 +212,25 @@ demo17_b <- demo17_b %>% mutate_each(funs(as.numeric(gsub("%", "", ., fixed = TR
 demo17_b <- demo17_b %>%
   mutate(over18 = EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus)
 
+demo17_b <- demo17_b %>%
+  mutate(tot_votes = vote18$Total, r_votes = vote18$Rep, d_votes = vote18$Dem) %>%
+  mutate(ruff_turnout = tot_votes / (Tot_Pop * over18), repub = r_votes / tot_votes, dem = d_votes / tot_votes, Elec_Type_Gen = 1, Elec_Type_Mid = 0)
+
+
+
 test17 <- demo17_b %>%
-  dplyr::select(-Tot_Pop)
+  dplyr::select(-Tot_Pop, -tot_votes, -r_votes, -d_votes)
+
+test17 <- test17 %>%
+  filter(Subject != "Congressional District 2 (115th Congress), Minnesota")
 
 #remove names
 
+primary_2018_turnout <- test17 %>%
+  dplyr::select(ruff_turnout)
+
 test17 <- test17 %>%
-  dplyr::select(-Subject)
+  dplyr::select(-Subject, -ruff_turnout)
 
 #fill in NA values
 
@@ -211,8 +239,11 @@ test17 <- test17 %>%
 ####For now I'm going to be lazy
 ####ANNNDDDDD.....
 
-test17 <- test17 %>%
-  replace_na(list(American_Indian_and_Alaska_Native = 0.000))
+test17[2, 14] = 0.004
+test17[5, 14] = 0.012
+
+#test17 <- test17 %>%
+#  replace_na(list(American_Indian_and_Alaska_Native = 0.000))
 
 #no_NA_anymore <- preProcess(test17, method='knnImpute')
 #no_NA_anymore
@@ -243,11 +274,11 @@ set.seed(100)
 
 lm.basic <- lm(ruff_turnout ~ 1, data = gen_elec_no_names)
 
-lm.full <- lm(ruff_turnout ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level, data = gen_elec_no_names)
+lm.full <- lm(ruff_turnout ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level + repub + dem + Elec_Type_Gen + Elec_Type_Mid, data = gen_elec_no_names)
 
-stepfwd <- stepAIC(lm.basic, scope = list(lower = ~ 1, upper = ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level), direction = "both")
+stepfwd <- stepAIC(lm.basic, scope = list(lower = ~ 1, upper = ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level + repub + dem + Elec_Type_Gen + Elec_Type_Mid), direction = "both")
 
-stepbk <- stepAIC(lm.full, scope = list(lower = ~ 1, upper = ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level), direction = "both")
+stepbk <- stepAIC(lm.full, scope = list(lower = ~ 1, upper = ~ Male + Female + Under5 + EighteenTo24 + TwentyfiveTo44 + FortyFiveTo54 + FiftyfiveTo64 + SixtyfiveTo74 + Seventyfive_plus + Median_age + White + Black + American_Indian_and_Alaska_Native + Asian + Some_other_race + Two_or_more_races + Hispanic + White_alone + Never_married + Now_married_not_separated + Divorced_separated + Widowed + Less_than_high_school_graduate + High_school_graduate + Some_college_or_associate_degree + Bachelor_degree + Graduate_or_professional_degree + One_9999_loss + TenK_14999 + FifteenK_24999 + TwentyfiveK_34999 + ThirtyfiveK_49999 + FiftyK_74999 + SeventyfiveK_plus + Below_poverty_level + repub + dem + Elec_Type_Gen + Elec_Type_Mid), direction = "both")
 
 summary(stepfwd)
 summary(stepbk)
@@ -295,7 +326,7 @@ set.seed(100)
 
 options(warn=-1)
 
-subsets <- c(1:5, 10, 15, 20, 25, 30, 35, 37)
+subsets <- c(3:5, 10, 15, 20, 25, 30, 35, 37)
 
 ctrl <- rfeControl(functions = rfFuncs,
                    method = "repeatedcv",
@@ -489,9 +520,9 @@ resid %>%
   gf_hline(yintercept = 0)
 
 
-confusionMatrix(stack_pred, testingData$ruff_turnout)
+#confusionMatrix(stack_pred, testingData$ruff_turnout)
 
-table(stack_pred, testingData$ruff_turnout)
+#table(stack_pred, testingData$ruff_turnout)
 
 #confusionMatrix(testingData$ruff_turnout, stack_pred)
 
@@ -500,6 +531,16 @@ test17_pred <- predict(stack, test17)
 plot(stack)
 ```
 
+####Nueral Networks
+
+```{r}
+set.seed(100)
+
+# Nueral Net: Quantile Regression Neural Network
+model_QRNN = train(ruff_turnout ~ ., data=trainingData, method='qrnn')
+model_QRNN
+
+```
 
 
 
